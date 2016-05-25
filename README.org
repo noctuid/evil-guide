@@ -315,26 +315,44 @@ If you wanted to override normal state with dired's keybindings, you could do th
 #+end_src
 The latter is what evil does by default (followed by an ~evil-add-hjkl-bindings~).
 
-Note that at any time you can use =C-z= (bound to  ~evil-emacs-state~) to enter emacs state or =\= (bound to ~evil-execute-in-emacs-state~) to execute the next command in emacs state. In emacs state, =C-z= and =ESC= are bound to switch to the previous state. This may not be what you want if you've entered emacs state from insert state, so you may want to rebind =ESC= to always enter normal state instead:
+Note that at any time you can use =C-z= (bound to ~evil-emacs-state~) to enter emacs state or =\= (bound to ~evil-execute-in-emacs-state~) to execute the next command in emacs state. In emacs state, =C-z= and =ESC= are bound to switch to the previous state. This may not be what you want if you've entered emacs state from insert state, so you may want to rebind =ESC= to always enter normal state instead:
 #+begin_src emacs-lisp
 (define-key evil-emacs-state-map [escape] 'evil-normal-state)
 #+end_src
 Note that in this case, attempting to rebind =(kbd "ESC")= will not work.
 
-If you never want to use insert state and want to always use emacs state instead, you can put the following in your configuration after loading evil:
-#+begin_src emacs-lisp
-(defalias 'evil-insert-state #'evil-emacs-state)
-#+end_src
-Anywhere that ~evil-insert-state~ is called, ~evil-emacs-state~ will be used instead. This will have =i=, =I=, =o=, =O=, =a=, =A=, etc. work as expected.
+If you want to use emacs keybindings instead of the ones that evil makes in insert state, you can change the =evil-insert-state-bindings= variable to your liking or set =evil-disable-insert-state-bindings= to =t= before loading evil. I recommend doing this instead of aliasing or overriding ~evil-insert-state~ to ~evil-emacs-state~ because the result is pretty much the same and evil intentionally does not record repeat information in emacs state.
 
-If you want to test this out, you might want to use advice instead to make it more easy to revert the change:
-#+begin_src emacs-lisp
-(advice-add 'evil-insert-state :override #'evil-emacs-state)
-;; to remove later
-(advice-remove 'evil-insert-state #'evil-emacs-state)
-#+end_src
+These are the keybindings evil makes in insert state by default:
 
-Alternatively, you could re-evaluate the definition of ~evil-insert-state~ in =evil-states.el=.
+| key       | command                        | emacs default            |
+|-----------+--------------------------------+--------------------------|
+| =C-v=     | ~quoted-insert~                | ~scroll-up-command~      |
+| =C-k=     | ~evil-insert-digraph~          | ~kill-line~              |
+| =C-o=     | ~evil-execute-in-normal-state~ | ~open-line~              |
+| =C-r=     | ~evil-paste-from-register~     | ~isearch-backward~       |
+| =C-y=     | ~evil-copy-from-above~         | ~yank~                   |
+| =C-e=     | ~evil-copy-from-below~         | ~move-end-of-line~       |
+| =C-n=     | ~evil-complete-next~           | ~next-line~              |
+| =C-p=     | ~evil-complete-previous~       | ~previous-line~          |
+| =C-x C-n= | ~evil-complete-next-line~      | ~set-goal-column~        |
+| =C-x C-p= | ~evil-complete-previous-line~  | ~mark-page~              |
+| =C-t=     | ~evil-shift-right-line~        | ~transpose-chars~        |
+| =C-d=     | ~evil-shift-left-line~         | ~delete-char~            |
+| =C-a=     | ~evil-paste-last-insertion~    | ~move-beginning-of-line~ |
+| =C-w=     | ~evil-delete-backward-word~    | ~kill-region~            |
+|           | or ~evil-window-map~           |                          |
+|           | (see =evil-want-C-w-delete=)   |                          |
+
+In =evil-insert-state-bindings=, evil also replaces ~delete-backward-char~ with ~evil-delete-backward-char-and-join~ and binds =<mouse-2>= to ~mouse-yank-primary~ (same as the default). Regardless of the value of =evil-insert-state-bindings= or =evil-disable-insert-state-bindings=, evil will bind the following in insert state:
+
+| key               | command                        | emacs default         |
+|-------------------+--------------------------------+-----------------------|
+| =<delete>=        | ~delete-char~                  | ~delete-forward-char~ |
+| =<escape>=        | ~evil-normal-state~            | acts like meta/alt    |
+| =evil-toggle-key= | ~evil-execute-in-normal-state~ | depends               |
+
+If you don't like these, you can always unbind or rebind them. =evil-toggle-key= defaults to =C-z= (bound to ~suspend-frame~ by default).
 
 *** Using Emacs Keybindings in Normal State
 For modes that still involve editing text but add extra keybindings, you don't always have to rely on a package to make keybindings for you in normal state or rebind everything yourself. =C-c= is used as a mode-specific prefix in emacs, and if you are okay with the keys under it for a mode, you can simply change the prefix to something else in normal state. While this won't always cover all the keybindings made by a mode (e.g. org-mode), it can be helpful.
