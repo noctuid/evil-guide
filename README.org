@@ -609,9 +609,15 @@ Evil lets you create new states with ~evil-define-state~ (see =Macros/States= un
 Escape is used as a prefix key in some parts of emacs, so you need to rebind it to =keyboard-escape-quit= in certain minibuffer-related keymaps for it to always act as expected. You can find a list of those keymaps [[http://stackoverflow.com/a/10166400/2744245][here]].
 
 ** Ex Command Definition
-You can define your own ex commands using ~evil-ex-define-cmd~. For example, this is how =write= is defined:
+You can define your own ex commands using ~evil-ex-define-cmd~. For example, this is how =copy= is defined:
 #+begin_src emacs-lisp
-(evil-ex-define-cmd "w[rite]" 'evil-write)
+(evil-ex-define-cmd "co[py]" 'evil-copy)
+(evil-ex-define-cmd "t" "copy")
+#+end_src
+
+You could, for example, use this to get some emacs commands with numbers in them to work from the command line (this won't work with "w3m" because of the write command):
+#+begin_src emacs-lisp
+(evil-ex-define-cmd "mu[4e]" 'mu4e)
 #+end_src
 * Autocommand Equivalents (unfinished)
 Here I'll list the hooks that are closest to common vim autocommands. See [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Hooks.html][here]] for the standard hooks that are part of emacs.
