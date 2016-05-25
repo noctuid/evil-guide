@@ -620,7 +620,7 @@ No, people's init files are usually the problem. To test emacs' startup speed, y
 
 Deferring a package from loading often just involves not putting a ~(require 'package)~ in your config. When you install a package through =package.el=, autoloads are automatically generated for functions that have autoload cookies (=;;;###autoload=). This means that if you bind a key to one of these autoloaded commands, the corresponding package will be loaded when you first use that key. Modes can also be autoloaded (e.g. loading is deferred until a certain filetype is opened or a hook runs).
 
-For a convenient way to control package loading, see [[https://github.com/jwiegley/use-package][use-package]]. For a way to profile your init file(s), see [[https://github.com/dholm/benchmark-init-el][benchmark-init]].
+For a convenient way to control package loading, see [[https://github.com/jwiegley/use-package][use-package]]. For a way to profile your init file(s), see [[https://github.com/dholm/benchmark-init-el][benchmark-init]] and [[https://github.com/jschaf/esup][esup]].
 
 ** How do I improve emacs' performance?
 If you're encountering lag while using emacs, it's likely due to part of your configuration. The most common culprit for slowdown is =linum-mode=. =nlinum= is a faster alternative. Some people don't use line numbers at all in emacs.
