@@ -673,7 +673,40 @@ You'll also want to run this in your init file or add it to the =after-init-hook
 The simplest way is to install and use a package like [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] or [[https://github.com/noctuid/lispyville][lispyville]] that will prevent evil's operators from unbalancing parentheses. Lispyville only remaps evil's operators by default, so you can ignore its other functionality (and lispy too) if you want.
 
 ** How can I have relative line numbers?
-Take a look at [[https://github.com/coldnew/linum-relative][linum-relative]] and [[https://github.com/CodeFalling/nlinum-relative][nlinum-relative]]. If you'd like, you can add hooks to switch between relative and absolute line numbers when moving in and out of insert state like [[https://github.com/myusuf3/numbers.vim][numbers.vim]] does, but doing this might cause some slowdown (I haven't tried it).
+Take a look at [[https://github.com/coldnew/linum-relative][linum-relative]] and [[https://github.com/CodeFalling/nlinum-relative][nlinum-relative]]. Nlinum-relative only redisplays during idle time. If you don't mind this, it shouldn't slow down emacs and looks quite nice. You can also lower the idle delay if you want. Here is the config I've started using to replicate [[https://github.com/myusuf3/numbers.vim][numbers.vim]]:
+#+begin_src emacs-lisp
+(defun noct:nlinum-setup ()
+  "Use absolute line numbers in insert state and relative ones in normal state.
+Applies only for the current buffer."
+  (nlinum-mode)
+  ;; maybe useful if you're not using normal as the initial state
+  (when (eq evil-state 'normal)
+    (nlinum-relative-on))
+  (add-hook 'evil-insert-state-exit-hook #'nlinum-relative-on nil t)
+  (add-hook 'evil-insert-state-entry-hook #'nlinum-relative-off nil t))
+
+(add-hook 'prog-mode-hook #'noct:nlinum-setup)
+#+end_src
+
+One thing to note is that if you are using git-gutter or diff-hl in the margin, line numbers (longer than one digit) will end up behind the diff signs. This isn't a problem if you are using the fringe to display the diff signs. If you are using terminal emacs, you have to use the margin since there is no fringe. Git-gutter has "experimental" support for not clobbering line numbers for linum-mode, so it is possible that in the future it will also work with nlinum-mode. A workaround for diff-hl is to use the right margin to display the markers instead. One can set =diff-hl-side= /before/ diff-hl is loaded:
+#+begin_src emacs-lisp
+(setq diff-hl-side 'right)
+#+end_src
+
+You can check ~(display-graphic-p)~ to determine whether or not to use the fringe. If you use emacsclient and want to use both graphical and terminal frames, things are a bit more complicated. You can use the following function to change the settings based on the current frame:
+#+begin_src emacs-lisp
+(defun noct:change-diff-location ()
+  "Put diff markers in the margin or fringe based on (display-graphic-p)."
+  (cond ((display-graphic-p)
+         (when diff-hl-margin-mode
+           (diff-hl-margin-mode -1))
+         (customize-set-variable 'diff-hl-side 'left))
+        (t
+         (diff-hl-margin-mode)
+         (customize-set-variable 'diff-hl-side 'right))))
+#+end_src
+
+You'll have to choose a hook to add this to. Using =focus-in-hook= won't work because it doesn't work with a terminal frame (at least it doesn't work for me; I couldn't find anything in the documentation about whether it should work). For vim, there is a plugin that uses tmux to get =FocusGained= to work in the terminal (see [[https://github.com/tmux-plugins/vim-tmux-focus-events][here]]; there is also mention of a patch to natively add this functionality to vim), so I assume it would also be possible to do something similar with emacs.
 
 ** Does emacs have support for folding?
 Yes, evil has integration with various emacs "folding" mechanisms builtin (such as origami, hideshow, and outline-mode/org-mode/markdown-mode; see =evil-fold-list=). Not all of vim's =z= keys will work though.
