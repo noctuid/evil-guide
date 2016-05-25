@@ -214,7 +214,14 @@ To make global keybindings in evil, you generally define keys in one of the stat
 - =evil-inner-text-objects-map=
 - =evil-replace-state-map=
 
-Most of these should be self-explanatory coming from vim. Emacs state is similar to insert state but uses emacs keybindings (e.g. =C-n= is bound to ~next-line~ instead of to ~evil-complete-next~). For the most part, the keys are the same as if you weren't using evil at all in emacs state. Motion state is a bit strange. Keys bound in motion state are available in normal state if normal state does not shadow them. For example, ~evil-next-visual-line~ is bound to =gj= in motion state instead of in the normal and visual state keymaps (you can check this with ~(lookup-key evil-normal-state-map "gj")~ which will return =nil=). Similarly, if you look up the operator keys such as =d=, you will find that they are only explicitly bound in normal state and not in visual state. Also note that defining a key in =evil-visual-state-map= is more like =xmap= in vim since there is no "select" state in evil. There are also buffer local versions of these states (e.g. ~evil-normal-state-local-map~).
+Most of these should be self-explanatory coming from vim. Emacs state is similar to insert state but uses emacs keybindings (e.g. =C-n= is bound to ~next-line~ instead of to ~evil-complete-next~). For the most part, the keys are the same as if you weren't using evil at all in emacs state. Motion state is a bit strange. Keys bound in motion state are available in the normal and visual states if they are not shadowed. For example, ~evil-next-visual-line~ is bound to =gj= in motion state instead of in the normal and visual state keymaps (you can check this with ~(lookup-key evil-normal-state-map "gj")~ which will return =nil=). This means that if you want to rebind a motion key like =j= or =k= in both normal and visual state, you can rebind it in just motion state. Similarly, if you look up the operator keys such as =d=, you will find that they are only explicitly bound in normal state and not in visual state (with the exception of operators that are bound to different keys in visual state like =u=, =U=, and =R=). Also note that defining a key in =evil-visual-state-map= is more like =xmap= in vim since there is no "select" state in evil. There are also buffer local versions of these states (e.g. ~evil-normal-state-local-map~).
+
+These are the other evil keymaps that might be useful:
+
+- =evil-ex-search-keymap= (=/= and =?=)
+- =evil-ex-completion-map= (=:=)
+- =evil-command-window-mode-map= (=q:=; you'd use =evil-define-key= for this)
+- =evil-window-map= (a prefix map for the =C-w= keys)
 
 The basic format of ~define-key~ is ~(define-key <keymap> <key> <command>)~. Here is what a basic =nmap= command equivalent would look like in emacs:
 #+begin_src emacs-lisp
