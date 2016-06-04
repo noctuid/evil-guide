@@ -232,7 +232,7 @@ To make global keybindings in emacs without evil, one would normally use ~global
 - =evil-normal-state-map=
 - =evil-visual-state-map=
 - =evil-motion-state-map=
-- =evil-operators-state-map=
+- =evil-operator-state-map=
 - =evil-outer-text-objects-map=
 - =evil-inner-text-objects-map=
 - =evil-replace-state-map=
