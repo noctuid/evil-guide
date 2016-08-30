@@ -278,7 +278,32 @@ An alternate way to define keys globally is to use ~evil-define-key~. I talk abo
 There is no dedicated function for unbinding a key in emacs. To unbind a key, you simply bind it to =nil=.
 
 ** Leader Key
-There is no equivalent of a "leader" key in evil. You can have named prefix keys with general.el, but this isn't really quite the same as the leader key in vim. In vim, it can be convenient to choose what you want your leader key to be for plugins that provide keybindings bound to =<leader>= (though this can also be annoying when your own mappings get clobbered). In emacs, evil packages generally do not force the use of some extra package that provides "leader" functionality onto the user.
+There is no exact equivalent of a "leader" key in evil. You can have named prefix keys with a package like [[https://github.com/noctuid/general.el][general.el]] or bind a prefix key to a named keymap. This will allow you to easily change your "leader"/prefix key later. Here's an example that doesn't use any extra packages:
+#+begin_src emacs-lisp
+(defvar my-leader-map (make-sparse-keymap)
+  "Keymap for \"leader key\" shortcuts.")
+(define-key evil-normal-state-map "," my-leader-map)
+;; binding ",b"
+(define-key my-leader-map "b" 'list-buffers)
+;; change the "leader" key to space
+(define-key evil-normal-state-map "," 'evil-repeat-find-char-reverse)
+(define-key evil-normal-state-map (kbd "SPC") my-leader-map)
+#+end_src
+
+This isn't quite the same as the leader key in vim. In vim, =<leader>= is builtin and commonly used by plugins to bind keys. This is convenient since it gives you some control over what you would like to use as a "main" prefix key without having to manually make keybindings for it with every plugin. In emacs, evil packages generally do not force the use of some extra package that provides "leader" functionality onto the user, and there is no standard, generic "leader" prefix map provided by evil. This means that "leader" keybindings in emacs will be your personal ones.
+
+In terms of functionality, it might be said that named prefixes are actually slightly more convenient in emacs. You can use as many prefix keymaps as you would like and can bind as many keys to the same prefix keymap as you would like (which may be useful if you want to use a different key to access a prefix keymap in insert state).
+
+For an example of a prefix keymap used by evil, see =evil-window-map= which is used for =C-w= commands. From =evil-maps.el=:
+#+begin_src emacs-lisp
+(define-prefix-command 'evil-window-map)
+(define-key evil-window-map "b" 'evil-window-bottom-right)
+(define-key evil-window-map "c" 'evil-window-delete)
+...
+(define-key evil-motion-state-map "\C-w" 'evil-window-map)
+#+end_src
+
+Note the use of ~define-prefix-command~ instead of ~defvar~. Either way works, but ~define-prefix-command~ is specifically intended for this purpose (see its documentation for more information).
 
 ** Mode Specific Keybindings
 ~evil-define-key~ can be used to define keys in specific states for specific modes. The basic format is ~(evil-define-key <state> <keymap> <key> <definition> ...)~. Unlike with ~define-key~, ~evil-define-key~ can be used to define multiple keys at once. The state argument can be a single state or a list of states. ~evil-define-key~ will also defer keybindings if the specified keymap does not exist. This means that you can use it without putting it in an ~eval-after-load~ for packages that haven't been loaded yet.
