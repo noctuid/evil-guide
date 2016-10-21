@@ -83,7 +83,7 @@ For a more complete list of terminology, see the emacs manual's [[https://www.gn
 In emacs, cutting is called "killing." Pasting is called "yanking." This is probably the most confusing terminology difference between vim and emacs. Just remember that emacs packages that talk about "yanking" are talking about pasting, whereas evil-related packages will use "yanking" to mean the same thing as in vim (copying).
 
 *** Buffer, Window, Frame, etc.
-Buffers and windows basically mean the same thing in emacs as they do in vim. A window in emacs displays a buffer, and a "frame" can hold multiple windows (some people refer to them as "splits"). An emacs frame is basically a system-level window. Emacs does not have vim-like tabs builtin, but there are various plugins for storing multiple window configurations in the same frame (see [[#does-emacs-have-vim-like-tabs-distinct-window-configurations][this part of the faq]]).
+Buffers and windows basically mean the same thing in emacs as they do in vim. A window in emacs displays a buffer, and a "frame" can hold multiple windows (some people refer to them as "splits"). An emacs frame is basically a system-level window. Emacs does not have vim-like tabs builtin, but there are various plugins for storing multiple window configurations in the same frame (see [[#does-emacs-have-vim-like-tabs-distinct-window-configurations][this part of the faq]]). Also [[http://www.braveclojure.com/basic-emacs/][this]] excellent article have some screenshots to give you visual explanation.
 
 *** Point and Mark
 The point refers to the cursor. The mark refers to the other side of a selected region (the "active region").
