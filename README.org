@@ -525,16 +525,15 @@ Instead of specifically undoing all the overrides that evil makes, you may want 
 
 If you don't want anything to be overriden, this is not enough. In =evil-integration.el=, ~evil-make-overriding-map~ is used for dired and ibuffer. If you want to prevent this, you either need to remove these parts from the file, clear the dired and ibuffer keymaps, or prevent ~evil-make-overriding-map~ from working. The first would be annoying to do and the second can cause problems (it will break WoMan, requiring extra configuration). By advising ~evil-overriding-map~ with =:around= or =:override=, it can be prevented from ever doing anything:
 #+begin_src emacs-lisp
-(defun my-nop (&rest _))
-(advice-add 'evil-make-overriding-map :override #'my-nop)
+(advice-add 'evil-make-overriding-map :override #'ignore)
 #+end_src
 
 If ~evil-make-intercept-map~ is ever used by default in =evil-integration.el= in a way you don't like, you could deal with this in the same way.
 
 If you want to use these functions later, you will need to remove the advice:
 #+begin_src emacs-lisp
-(advice-remove 'evil-make-overriding-map #'my-nop)
-(advice-remove 'evil-make-intercept-map #'my-nop)
+(advice-remove 'evil-make-overriding-map #'ignore)
+(advice-remove 'evil-make-intercept-map #'ignore)
 #+end_src
 *** Prevent Text Property Maps from Overriding Normal State
 Locations in a buffer can have their own keymaps. As these keymaps have a higher precedence than evil, you will have to clear them to prevent them from overriding your keys. As of emacs 25, help pages will tell you where a key is bound, so to find the keymap you could press =C-h k <key that is being overriden>=. A good example of when you might encounter these keymaps is for links (enter and mouse clicks are often remapped) and for magit-status diff sections. To control the keybindings in these locations, you need to clear the keymap (or at least unbind the keys you don't want) and then define the keys as you like. Note that you should use ~define-key~ and not ~evil-define-key~ for this.
