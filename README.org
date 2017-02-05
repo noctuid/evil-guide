@@ -260,7 +260,7 @@ Here is what a basic =nmap= command equivalent would look like in emacs:
 Evil also provides a convenience function called ~evil-global-set-key~ that allows you to simply specify the name of the state as opposed to the full keymap name:
 #+begin_src emacs-lisp
 (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-(evil-global-set-key 'motion "k" 'evil-next-visual-line)
+(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 #+end_src
 Remember that binding a key in motion state is like binding a key in the normal, visual, and operator states all at once (unless that key is already bound in one of those states).
 
