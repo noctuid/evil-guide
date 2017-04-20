@@ -71,7 +71,7 @@
   - [[#why-dont-keys-defined-with-evil-define-key-work-immediately][Why don't keys defined with ~evil-define-key~ work (immediately)?]]
 
 * Emacs/Evil for Vim Users
-This is not meant to be a comprehensive introductory guide to emacs or a comparison between vim and emacs. It is meant to focus specifically on evil and address questions vim users might have when first using emacs with evil. Where there are already detailed, informative resources on other related topics, I will included references instead of re-explaining things myself. This aims to be a general guide to teach the reader about how to use and configure evil as opposed to a collection of configuration snippets.
+This is not meant to be a comprehensive introductory guide to emacs or a comparison between vim and emacs. It is meant to focus specifically on evil and address questions vim users might have when first using emacs with evil. Where there are already detailed, informative resources on other related topics, I will include references instead of re-explaining things myself. This aims to be a general guide to teach the reader about how to use and configure evil as opposed to a collection of configuration snippets.
 
 If you have any suggestions for questions or problems it would be useful to discuss, feel free to make an issue or pull request.
 
