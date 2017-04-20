@@ -149,10 +149,14 @@ Here is what will happen if you did not quote the arguments:
 ;; => 5
 #+end_src
 
-This can be confusing to a beginner when setting options or using functions. To simplify things, if you don't want a function argument to be treated as a variable, you must quote it since functions evaluate their arguments. There are some exceptions. For example, =nil= and =t= do not need to be quoted since they evaluate to themselves. Some macros do not require symbols to be quoted; the most common example would probably be ~defun~. For convenience, the name of the function being defined does not need to be quoted:
+This can be confusing to a beginner when setting options or using functions. To simplify things, if you don't want a function argument to be treated as a variable, you must quote it since functions evaluate their arguments. Note that this applies to /symbols/ and not /literals/ (i.e. you do not need to quote strings, numbers, etc).
+
+There are some exceptions to this rule. For example, =nil= and =t= do not need to be quoted since they evaluate to themselves. Some macros do not require symbols to be quoted; the most common examples would probably be ~defun~ and ~setq~. For convenience, the name of the function being defined or variable being set does not need to be quoted:
 #+begin_src emacs-lisp
 (defun hello-world ()
   (message "Hello world"))
+
+(setq my-var t)
 #+end_src
 
 For more information, see the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Quoting.html][corresponding section]] in the emacs manual.
