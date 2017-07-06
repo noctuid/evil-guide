@@ -838,7 +838,7 @@ Yes, evil has integration with various emacs "folding" mechanisms builtin (such 
 For manual creation of folds from selected regions, there are the [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] and [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]] packages.
 
 ** Why don't keys defined with ~evil-define-key~ work (immediately)?
-This has been a known problem for a while (see [[https://bitbucket.org/lyro/evil/issues/130/evil-define-key-can-no-longer-bind-key-in][issue 130]] and especially [[https://bitbucket.org/lyro/evil/issues/301/evil-define-key-for-minor-mode-does-not][issue 301]], which explains some of the issues with ~evil-define-key~). This doesn't happen for most modes, but when it does happen, it's annoying.
+This has been a known problem for a while (see [[https://github.com/emacs-evil/evil/issues/130][issue 130]] and especially [[https://github.com/emacs-evil/evil/issues/301][issue 301]], which explains some of the issues with ~evil-define-key~). This doesn't happen for most modes, but when it does happen, it's annoying.
 
 There are several possible workarounds. You can use the mode's hook to either bind the keys locally with ~evil-local-set-key~ as shown in the [[#buffer-local-keybindings][Buffer Local Keybindings]] section. A more direct solution would be to continue to use ~evil-define-key~ and to use the hook to call ~evil-normalize-keymaps~:
 #+begin_src emacs-lisp
