@@ -345,6 +345,8 @@ For an example of a prefix keymap used by evil, see =evil-window-map= which is u
 
 Note the use of ~define-prefix-command~ instead of ~defvar~. Either way works, but ~define-prefix-command~ is specifically intended for this purpose (see its documentation for more information).
 
+You can check out another alternative for emulating the leader key in the [[https://github.com/noctuid/evil-guide/wiki#using-hydra-for-leader-key][wiki]]
+
 ** Mode Specific Keybindings
 ~evil-define-key~ can be used to define keys in specific states for specific modes. The basic format is ~(evil-define-key <state> <keymap> <key> <definition> ...)~. Unlike with ~define-key~, ~evil-define-key~ can be used to define multiple keys at once. The state argument can be a single state or a list of states. ~evil-define-key~ will also defer keybindings if the specified keymap does not exist. This means that you can use it without putting it in an ~eval-after-load~ for packages that haven't been loaded yet.
 
