@@ -40,7 +40,7 @@
     - [[#prevent-text-property-maps-from-overriding-normal-state][Prevent Text Property Maps from Overriding Normal State]]
     - [[#modal-minibuffer][Modal Minibuffer]]
     - [[#example-integration-with-pdf-tools][Example: Integration with Pdf Tools]]
-  - [[#customizing-command-behavior][Customizing Command Behavior]]
+  - [[#command-properties][Command Properties]]
     - [[#repeat][:repeat]]
     - [[#jump][:jump]]
     - [[#type][:type]]
@@ -636,7 +636,7 @@ Want to copy text using vim keys? Pdf-tools displays pdfs using images, but you 
 
 Once you're done, you can delete the buffer (~kill-this-buffer~) and continue reading where you left off.
 
-** Customizing Command Behavior
+** Command Properties
 Evil provides the following functions for customizing how it deals with commands:
 - ~evil-set-command-property~: Set one property of a command
 - ~evil-put-command-property~: Alias for ~evil-set-command-property~
