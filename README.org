@@ -1,6 +1,9 @@
 #+AUTHOR: Fox Kiester
+#+LINK: evil-collection https://github.com/emacs-evil/evil-collection
 
-*Table of Contents*
+# NOTE: If you are viewing this in org-mode, it is recommended that you install and enable [[https://github.com/snosov1/toc-org][toc-org]], so that all internal links open correctly
+
+* Table of Contents                                                     :TOC:
 - [[#emacsevil-for-vim-users][Emacs/Evil for Vim Users]]
 - [[#bare-minimum-emacs-knowledge][Bare Minimum Emacs Knowledge]]
   - [[#terminology][Terminology]]
@@ -29,15 +32,14 @@
 - [[#further-integrating-evil-and-emacs][Further Integrating Evil and Emacs]]
   - [[#what-overrides-evil][What Overrides Evil?]]
   - [[#evils-tools][Evil's Tools]]
-  - [[#some-emacs-keybindings][Some Emacs Keybindings]]
+  - [[#preventing-certain-keys-from-being-overridden][Preventing Certain Keys From Being Overridden]]
+    - [[#prevent-text-property-maps-from-overriding-evil][Prevent Text Property Maps from Overriding Evil]]
+  - [[#use-some-emacs-keybindings][Use Some Emacs Keybindings]]
     - [[#switching-between-evil-and-emacs][Switching Between Evil and Emacs]]
     - [[#using-emacs-keybindings-in-normal-state][Using Emacs Keybindings in Normal State]]
-    - [[#preventing-certain-keys-from-being-overridden][Preventing Certain Keys From Being Overridden]]
-  - [[#evil-everywhere][Evil Everywhere]]
+  - [[#use-evil-everywhere][Use Evil Everywhere]]
     - [[#make-evil-normal-state-the-initial-state-always][Make Evil Normal State the Initial State Always]]
-    - [[#undo-overridingintercept-maps][Undo Overriding/Intercept Maps]]
-    - [[#prevent-overridingintercept-maps][Prevent Overriding/Intercept Maps]]
-    - [[#prevent-text-property-maps-from-overriding-normal-state][Prevent Text Property Maps from Overriding Normal State]]
+    - [[#undoprevent-overridingintercept-maps][Undo/Prevent Overriding/Intercept Maps]]
     - [[#modal-minibuffer][Modal Minibuffer]]
     - [[#example-integration-with-pdf-tools][Example: Integration with Pdf Tools]]
   - [[#command-properties][Command Properties]]
@@ -364,31 +366,76 @@ Since this functionality is used in the next section, I'll go ahead and mention 
 * Further Integrating Evil and Emacs
 There is a common misconception that evil is unable integrate well with certain parts of emacs. What is true is that evil has some default configuration that may be annoying and does not provide default keybindings for all emacs packages. That said, once you know about the tools evil gives you, the process of integration becomes much easier. In the following sections, I will present various techniques for reconciling emacs and evil keybindings.
 
-In many cases there are also packages that will make keybindings for you, such as [[https://github.com/justbur/evil-magit][evil-magit]]. I don't personally use these unless they provide new functionality too, but some people find these packages indispensable.
-
-On the other hand, I'd highly recommend looking at [[https://github.com/emacs-evil/evil-collection][evil-collection]]. The main difference between this package and others is that it attempts to cover everything as opposed to a single mode. The main benefit of this approach is that =evil-collection= uses a consistent set of rules for what keys are bound to what types of actions. Even if you don't agree with the specific key choices, it is easy enough to swap them for your own. Because of this, I will likely switch my personal configuration for all relevant modes to use =evil-collection= as a base in the future.
+Some people prefer to use evil only for text editing and use the default emacs keybindings for applications such as dired and mail clients. Evil makes this easy to do by altering initial states or using overriding keymaps for these modes. I personally prefer to use evil everywhere. Some people argue that the lack of default keybindings for applications like dired means that far too much work is required to use evil with them. Some argue that the lack of consistency makes evil not worth using at all. In my experience, making your own keybindings for some application like mu4e takes significantly less time than reading the documentation and can be done simultaneously. Even if you disagree, it's no longer the case that most modes have no evil support. In many cases there are packages for specific modes that will make evil keybindings for you, such as [[https://github.com/justbur/evil-magit][evil-magit]]. I don't personally use these unless they provide new functionality too, but some people find these packages indispensable. On the other hand, I'd highly recommend looking at [[evil-collection][evil-collection]]. The main difference between this package and others is that it attempts to cover everything as opposed to a single mode. The main benefit of this approach is that =evil-collection= uses a consistent set of rules for what keys are bound to what types of actions. Because of this, I will likely switch my personal configuration for all relevant modes to use =evil-collection= as a base in the future. Even if you don't agree with the specific key choices, it is easy enough to swap them for your own. On the other hand, most emacs applications use inconsistent keybindings for common actions such as filtering, sorting, marking, etc., so one might even argue that with evil-collection, using evil for such applications is actually easier and more consistent than using them normally.
 
 ** What Overrides Evil?
-If you've ever entered some buffer and noticed that your normal state keybindings weren't working, it was probably because of some configuration done by evil (see =evil-integration.el=). There are very few cases where another keymap takes precedence over an evil one. Referring back to the fact that evil's keymaps are located in =emulation-mode-map-alists= and the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Searching-Keymaps.html][Searching Keymaps]] section of the emacs manual, you'll notice that emacs will check in the keymap char property before reaching evil's keymaps. An example of where this would override evil keybindings is when the point is in a magit diff section in the magit status buffer. The other main case where evil keybindings will be overriden is by =overriding-terminal-local-map=, which has the highest precedence in emacs. Normally it is used by ~set-transient-map~ to temporarily to elevate a keymap to the highest precedence. For an example of packages that use ~set-transient-map~, see [[http://oremacs.com/2014/12/31/keymap-arms-race/][this article]].
+If you've ever entered some buffer and noticed that your normal state keybindings weren't working, it was probably because of some configuration done by evil (see =evil-integration.el=). There are very few cases where another keymap takes precedence over an evil one.
+
+Referring back to the fact that evil's keymaps are located in =emulation-mode-map-alists= and the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Searching-Keymaps.html][Searching Keymaps]] section of the emacs manual, you'll notice that emacs will check in the keymap char property before reaching evil's keymaps. An example of where this would override evil keybindings is when the point is in a magit diff section in the magit status buffer. See [[#prevent-text-property-maps-from-overriding-evil][here]] for information on how to deal with this.
+
+The other main case where evil keybindings will be overridden is by keybindings in =overriding-terminal-local-map=, which has the highest precedence in emacs. Normally it is used by ~set-transient-map~ to temporarily to elevate a keymap to the highest precedence. Note that generally this will not get in the way of evil keybindings (e.g. this is the mechanism used by =hydra=) For an example of packages that use ~set-transient-map~, see [[http://oremacs.com/2014/12/31/keymap-arms-race/][this article]].
+
+Finally, it may be possible for other keymaps in =emulation-mode-map-alists= to override evil. For example, when the company popup is active, keys in ~company-active-map~ will have precedence. If this causes any annoyances, you can unbind the offending key in ~company-active-map~.
 
 ** Evil's Tools
-Evil provides a way to set the initial state for a mode as well as to override a state with another keymap. I will be referencing these variables/functions in later sections, so I will briefly explain them now.
+Evil provides a way to set the initial state for a mode as well as to allow keybindings in a keymap to override global keybindings for some/all states. I will be referencing these variables/functions in later sections, so I will briefly explain them now.
 
 *Initial States*
 
 Evil has "initial state" lists containing modes. For example, if you wanted =org-mode= buffers to start in emacs state, you could add =org-mode= to =evil-emacs-state-modes= and remove it from the list it was previously in or just use ~(evil-set-initial-state 'org-mode 'emacs)~.
 
-*Overriding/Intercepting Keymaps*
+*Overriding/Intercept Keymaps*
 
-Evil has two variables called =evil-overriding-maps= and =evil-intercept-maps=. They both have a similar effect. Keymaps listed in =evil-override-maps= will replace evil keybindings. For example, =(Info-mode-map . motion)= is in this list by default, meaning that keys bound in =Info-mode-map= will override keys bound in motion state. If no state is specified (e.g. =(compilation-mode-map)=, another default), all states will be overridden. The corresponding functions are ~evil-make-overriding-map~ and ~evil-make-intercept-map~. The difference between the two has to do with precedence (refer back to [[#keymap-precedence][Keymap Precedence]]). An overriding keymap will not override keys bound with ~evil-local-set-key~, ~evil-define-minor-mode-key~, or ~evil-define-key~, but an intercept keymap will. Because of this, you generally won't want to use intercept maps.
+Evil has two variables called =evil-overriding-maps= and =evil-intercept-maps=. They both have a similar effect. Keybindings made in keymaps listed in =evil-override-maps= will override global evil keybindings. For example, =(Info-mode-map . motion)= is in this list by default, meaning that keys bound in =Info-mode-map= (when it is active) will override keys bound in =evil-motion-state-map=. If no state is specified (e.g. =(compilation-mode-map)=, another default), keybindings in all global keymaps will be overridden. The difference between intercept and overriding keymaps has to do with precedence (refer back to [[#keymap-precedence][Keymap Precedence]]). Keys bound in a overriding keymap will not override keys bound with ~evil-local-set-key~, ~evil-define-minor-mode-key~, or ~evil-define-key~, but keys bound in an intercept keymap will.
 
-Evil also has a function called ~evil-add-hjkl-bindings~ that can be useful to add back =hjkl= movement keybindings to an overriden keymap.
+Note that changing these variables after evil is loaded using ~setq~ will have no effect. You can use customize, but I recommend using the corresponding functions instead: ~evil-make-overriding-map~ and ~evil-make-intercept-map~.
+
+Evil also has a function called ~evil-add-hjkl-bindings~ that can be used to add back =hjkl= movement keybindings for a mode after making its keymap an overriding keymap.
 
 *Evil Command Properties*
 
 Evil has a concept of "command properties" that can be added with ~evil-add-command-properties~, ~evil-set-command-property~, or ~evil-set-command-properties~ and gotten with ~evil-get-command-property~ or ~evil-get-command-properties~. These can be used to, for example, customize whether or not and how a command will be repeated later with =.= (~evil-repeat~).
 
-** Some Emacs Keybindings
+** Preventing Certain Keys From Being Overridden
+Regardless of whether you want to sometimes have emacs keys override keys in normal/motion state, you may want to have certain keys universally available (e.g. prefix keys used for window/workgroup/buffer/file navigation). The suggested method for doing this is to use evil intercept keymaps since they have the highest precedence. This means that no standard method a package could use to define an evil key (~evil-define-key~, ~evil-define-minor-mode-key~, ~evil-local-set-key~, etc.) can override keys you've bound in an intercept keymap. Here's an example of how to create such a mode/keymap yourself:
+#+begin_src emacs-lisp
+(defvar my-intercept-mode-map (make-sparse-keymap)
+  "High precedence keymap.")
+
+(define-minor-mode my-intercept-mode
+  "Global minor mode for higher precedence evil keybindings."
+  :global t)
+
+(my-intercept-mode)
+
+(dolist (state '(normal visual insert))
+  (evil-make-intercept-map
+   ;; NOTE: This requires an evil version from 2018-03-20 or later
+   (evil-get-auxiliary-keymap my-intercept-mode-map state t t)
+   state))
+
+(evil-define-key 'normal my-intercept-mode-map
+  (kbd "SPC f") 'find-file)
+;; ...
+#+end_src
+
+If you are using [[https://github.com/noctuid/general.el][https://github.com/noctuid/general.el]], this configuration is done automatically, so you can just use the ='override= keymap:
+#+begin_src emacs-lisp
+(general-override-mode)
+
+(general-def 'normal 'override
+  "SPC f" 'find-file)
+#+end_src
+
+*** Prevent Text Property Maps from Overriding Evil
+Locations in a buffer can have their own keymaps. As these keymaps have a higher precedence than evil, you will have to clear them to prevent them from overriding your keys. As of emacs 25, help pages will tell you where a key is bound, so to find the keymap you could press =C-h k <key that is being overriden>=. A good example of when you might encounter these keymaps is for links (enter and mouse clicks are often remapped) and for magit-status diff sections. To control the keybindings in these locations, you need to clear the keymap (or at least unbind the keys you don't want) and then define the keys as you like. Note that you should use ~define-key~ and not ~evil-define-key~ for this.
+
+#+begin_src emacs-lisp
+(setq magit-hunk-section-map (make-sparse-keymap))
+(define-key magit-hunk-section-map "s" 'magit-stage)
+#+end_src
+
+** Use Some Emacs Keybindings
 *** Switching Between Evil and Emacs
 Some people prefer to just use evil for editing and stick to emacs keybindings elsewhere. This method just involves altering the initial state for certain modes or using ~evil-make-overriding-map~. For example, if you just wanted to use dired's keybindings as they are without touching your normal state keybindings in dired-mode, you could do the following:
 #+begin_src emacs-lisp
@@ -407,7 +454,7 @@ Note that at any time you can use =C-z= (bound to ~evil-emacs-state~) to enter e
 #+end_src
 Note that in this case, attempting to rebind =(kbd "ESC")= will not work.
 
-If you want to use emacs keybindings instead of the ones that evil makes in insert state, you can change the =evil-insert-state-bindings= variable to your liking or set =evil-disable-insert-state-bindings= to =t= before loading evil. I recommend doing this instead of aliasing or overriding ~evil-insert-state~ to ~evil-emacs-state~ because the result is pretty much the same and evil intentionally does not record repeat information in emacs state.
+If you want to use emacs keybindings instead of the ones that evil makes in insert state, you can change the =evil-insert-state-bindings= variable to your liking or set =evil-disable-insert-state-bindings= to =t= before loading evil (or use customize to set it afterwards). I recommend doing this instead of aliasing or overriding ~evil-insert-state~ to ~evil-emacs-state~ because the result is pretty much the same and evil intentionally does not record repeat information in emacs state.
 
 These are the keybindings evil makes in insert state by default:
 
@@ -443,17 +490,12 @@ If you don't like these, you can always unbind or rebind them. =evil-toggle-key=
 *** Using Emacs Keybindings in Normal State
 For modes that still involve editing text but add extra keybindings, you don't always have to rely on a package to make keybindings for you in normal state or rebind everything yourself. =C-c= is used as a mode-specific prefix in emacs, and if you are okay with the keys under it for a mode, you can simply change the prefix to something else in normal state. While this won't always cover all the keybindings made by a mode (e.g. org-mode), it can be helpful.
 
-For example (function taken from Malabarba's post [[https://emacs.stackexchange.com/questions/6037/emacs-bind-key-to-prefix/13432#13432][here]]):
+For example, using [[https://github.com/noctuid/general.el#simulating-keypresses][~general-simulate-key~ or ~general-key~]]:
 #+begin_src emacs-lisp
-(defun simulate-key-press (key)
-  "Pretend that KEY was pressed.
-KEY must be given in `kbd' notation."
-  `(lambda ()
-     (interactive)
-     (setq prefix-arg current-prefix-arg)
-     (setq unread-command-events (listify-key-sequence (read-kbd-macro ,key)))))
-
-(define-key evil-normal-state-map (kbd "SPC") (simulate-key-press "C-c"))
+(define-key evil-normal-state-map (kbd "SPC") (general-simulate-key "C-c"))
+;; act as whatever C-n is currently bound to in emacs state (eg. `next-line' or
+;; `dired-next-line')
+(define-key evil-normal-state-map (kbd "j") (general-key "C-n" :state 'emacs))
 #+end_src
 
 With this configuration, you could, for example, press =SPC C-e= in normal state in org mode to bring up the export dispatcher. Emacs allows you to bind keys to keymaps, so the following is also possible:
@@ -462,34 +504,11 @@ With this configuration, you could, for example, press =SPC C-e= in normal state
 (define-key evil-normal-state-map (kbd "SPC x") ctl-x-map)
 #+end_src
 
-There are other ways to simulate keys of course, but the way listed here is well-suited for keybindings. This method allows prefix arguments to work properly for the command that ends up running, whereas a keyboard macro would eat the prefix argument. I think this method is also a lot better than the key translation methods mentioned [[https://www.emacswiki.org/emacs/Evil#toc13][here]].
+There are other ways to simulate keys of course, but the way listed here is well-suited for keybindings. This method allows prefix arguments to work properly for the command that ends up running, whereas a keyboard macro would eat the prefix argument. I personally also prefer this method to the key translation methods mentioned [[https://www.emacswiki.org/emacs/Evil#toc13][here]].
 
-[[https://github.com/noctuid/general.el][General.el]] provides a similar command called ~general-simulate-keys~ that has some enhancements. It returns a named function with a docstring, so which-key and =C-h k= will work with the key you bind the result to automatically. It also provides an argument to have the keys simulated in emacs state. This allows simulating keys that evil overrides:
-#+begin_src emacs-lisp
-(general-nmap "j" (general-simulate-keys "C-n" t))
-#+end_src
-
-With this, =j= in normal-state would act as whatever =C-n= is bound to in the current mode for emacs (e.g. ~next-line~ or ~dired-next-line~).
-
-*** Preventing Certain Keys From Being Overridden
-A potential downside to overriding normal state with ~evil-make-overriding-map~ is that you lose use of all keys that are bound in the overriding map. You may want to make use of ~evil-make-overriding-map~ but selectively keep certain keys that you want to be the same everywhere. A good example might be keys bound to commands for window or tab/workgroup/perspective commands.
-
-One way to do this is to bind the keys you never want to be altered in =global-map= or ~(current-global-map)~ using ~evil-define-key~:
-#+begin_src emacs-lisp
-(evil-define-key 'normal (current-global-map)
-  (kbd "SPC h") 'windmove-left
-  ...)
-#+end_src
-
-This is a nonstandard way of defining keys, but the effect is basically the same as binding a key in =evil-normal-state-map= (though with higher precedence). General.el provides a way to have =general-nmap= behave this way by default or temporarily. The following are equivalent:
-#+begin_src emacs-lisp
-(general-define-key :states 'normal "SPC h" 'windmove-left)
-(let ((general-vim-definer-default 'states))
-  (general-nmap "SPC h" 'windmove-left))
-#+end_src
-** Evil Everywhere
+** Use Evil Everywhere
 *** Make Evil Normal State the Initial State Always
-After loading evil, you can use the following configuration to have all modes start in normal state:
+You can use the following configuration to have all modes start in normal state:
 #+begin_src emacs-lisp
 (setq evil-emacs-state-modes nil)
 (setq evil-insert-state-modes nil)
@@ -509,7 +528,9 @@ If you'd rather have REPLs start in insert state, you may want to keep =evil-ins
 
 Later if you want to change the state a mode starts in, you should use ~evil-set-initial-state~ as it will automatically remove the mode from any other state list.
 
-*** Undo Overriding/Intercept Maps
+*** Undo/Prevent Overriding/Intercept Maps
+As a disclaimer, overriding keymaps will not interfere with keys [[#preventing-certain-keys-from-being-overridden][defined in intercept keymaps]], and the default =evil-intercept-maps= (which contains =edebug-mode-map= at the time of writing) is something you might want to leave as is. If you just never want emacs keys overriding any evil keys (e.g. there are some keys that you don't want the same everywhere but don't want overridden by emacs keys either, you want to make all your keybindings for used modes, or you are using [[evil-collection][evil-collection]] which already provides evil keybindings for used modes), the following information may be useful.
+
 Undoing an override or intercept involves unbinding either =[override-state]= or =[intercept-state]= like so:
 #+begin_src emacs-lisp
 (define-key keymap [override-state] nil)
@@ -520,7 +541,7 @@ As an example, to undo evil's default overriding of =Info-mode-map=:
 #+begin_src emacs-lisp
 (define-key Info-mode-map [override-state] nil)
 #+end_src
-*** Prevent Overriding/Intercept Maps
+
 Instead of specifically undoing all the overrides that evil makes, you may want to instead prevent evil from ever overriding anything using a more generic method. Evil provides variables containing keymaps to elevate. They must be set to nil /before/ evil is loaded:
 #+begin_src emacs-lisp
 (setq evil-overriding-maps nil
@@ -529,25 +550,18 @@ Instead of specifically undoing all the overrides that evil makes, you may want 
 (require 'evil)
 #+end_src
 
-If you don't want anything to be overriden, this is not enough. In =evil-integration.el=, ~evil-make-overriding-map~ is used for dired and ibuffer. If you want to prevent this, you either need to remove these parts from the file, clear the dired and ibuffer keymaps, or prevent ~evil-make-overriding-map~ from working. The first would be annoying to do and the second can cause problems (it will break WoMan, requiring extra configuration). By advising ~evil-overriding-map~ with =:around= or =:override=, it can be prevented from ever doing anything:
+If you don't want anything to be overriden, this is not enough. In =evil-integration.el=, ~evil-make-overriding-map~ is used for dired and ibuffer. If you want to prevent =evil-integration.el= from being loaded, you can set =evil-want-integration= to nil /before/ loading evil. If you use [[evil-collection][evil-collection]], which provides the useful functionality from =evil-integration.el= without creating overriding keymaps, you should set this variable to nil.
+
+If you really want to prevent overriding maps from ever being created (e.g. some other evil package could do it), you can advise ~evil-overiding-map~ to prevent it from ever doing anything:
 #+begin_src emacs-lisp
 (advice-add 'evil-make-overriding-map :override #'ignore)
 #+end_src
 
-If ~evil-make-intercept-map~ is ever used by default in =evil-integration.el= in a way you don't like, you could deal with this in the same way.
-
-If you want to use these functions later, you will need to remove the advice:
+You can always remove this advice later:
 #+begin_src emacs-lisp
 (advice-remove 'evil-make-overriding-map #'ignore)
-(advice-remove 'evil-make-intercept-map #'ignore)
 #+end_src
-*** Prevent Text Property Maps from Overriding Normal State
-Locations in a buffer can have their own keymaps. As these keymaps have a higher precedence than evil, you will have to clear them to prevent them from overriding your keys. As of emacs 25, help pages will tell you where a key is bound, so to find the keymap you could press =C-h k <key that is being overriden>=. A good example of when you might encounter these keymaps is for links (enter and mouse clicks are often remapped) and for magit-status diff sections. To control the keybindings in these locations, you need to clear the keymap (or at least unbind the keys you don't want) and then define the keys as you like. Note that you should use ~define-key~ and not ~evil-define-key~ for this.
 
-#+begin_src emacs-lisp
-(setq magit-hunk-section-map (make-sparse-keymap))
-(define-key magit-hunk-section-map "s" 'magit-stage)
-#+end_src
 *** Modal Minibuffer
 Normal state does /kind of/ work in the minibuffer if you bind a key to ~evil-normal-state~, but I don't personally find it to be usable. For the ex command line specifically, it's worth noting that evil provides =q:=.
 
