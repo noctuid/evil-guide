@@ -716,7 +716,7 @@ See the =Settings/The cursor= section of the evil info node for more information
 Evil lets you create new states with ~evil-define-state~ (see =Macros/States= under the evil info node). You may never need to use this, and if you're looking for something like [[https://github.com/kana/vim-submode][vim-submode]], I'd highly recommend looking at [[https://github.com/abo-abo/hydra][hydra]] instead.
 
 ** Using Escape to Exit the Minibuffer
-Escape is used as a prefix key in some parts of emacs, so you need to rebind it to =keyboard-escape-quit= in certain minibuffer-related keymaps for it to always act as expected. You can find a list of those keymaps [[http://stackoverflow.com/a/10166400/2744245][here]].
+Escape is used as a prefix key in some parts of emacs, so you need to rebind it to =keyboard-escape-quit= in certain minibuffer-related keymaps for it to always act as expected. You could, for example, use [[https://github.com/emacs-evil/evil-collection/blob/master/evil-collection-minibuffer.el][evil-collection-minibuffer.el]] to do this.
 
 ** Ex Command Definition
 You can define your own ex commands using ~evil-ex-define-cmd~. For example, this is how =copy= is defined:
@@ -729,8 +729,6 @@ You could, for example, use this to get some emacs commands with numbers in them
 #+begin_src emacs-lisp
 (evil-ex-define-cmd "mu[4e]" 'mu4e)
 #+end_src
-* Autocommand Equivalents (unfinished)
-Here I'll list the hooks that are closest to common vim autocommands. See [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Hooks.html][here]] for the standard hooks that are part of emacs.
 
 * Autocommand Equivalents (unfinished)
 Here the hooks that are closest to common vim autocommands are listed. This is fairly incomplete, and in many cases there are not direct/exact equivalents, or common use cases of the vim hooks are unnecessary (e.g. you don't need to use hooks in emacs to make keybindings for specific filetypes). See [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Hooks.html][here]] for the standard hooks that are part of emacs.
