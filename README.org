@@ -864,7 +864,9 @@ The other way would be to use ~evil-define-minor-mode-key~ which was introduced 
 #+end_src
 
 * Plan to Add
-- A section on configuring undo (e.g. the size of undo units)
-- A section giving equivalent vim and emacs settings
-- A section mentioning emacs plugins that are equivalent to vim-specific plugins and functionality (e.g. plugins that add extra text objects not plugins for autocompletion)
-- Maybe a small section explaining basic configuration like installing packages and setting up minor modes
+- Add a section on configuring undo (e.g. =evil-want-fine-undo=, =evil-with-undo=, =evil-with-single-undo=, etc.)
+- Add section explaining evil interactive codes
+- Explain all command properties
+- Add section on evil's supported/missing functionality (e.g. numerical prefixes before operators aren't repeated and =:put=, =:next=, =:rewind=, etc. are missing)
+- Mention =evil-ex-map=
+- Mention =evil-without-repeat=
