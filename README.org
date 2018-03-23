@@ -732,10 +732,19 @@ You could, for example, use this to get some emacs commands with numbers in them
 * Autocommand Equivalents (unfinished)
 Here I'll list the hooks that are closest to common vim autocommands. See [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Hooks.html][here]] for the standard hooks that are part of emacs.
 
-| vim           | emacs                         |
-|---------------+-------------------------------|
-| =InsertLeave= | =evil-insert-state-exit-hook= |
-| =BufEnter=    | =find-file-hook=              |
+* Autocommand Equivalents (unfinished)
+Here the hooks that are closest to common vim autocommands are listed. This is fairly incomplete, and in many cases there are not direct/exact equivalents, or common use cases of the vim hooks are unnecessary (e.g. you don't need to use hooks in emacs to make keybindings for specific filetypes). See [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Standard-Hooks.html][here]] for the standard hooks that are part of emacs.
+
+| vim               | emacs                                    |
+|-------------------+------------------------------------------|
+| =InsertLeave=     | =evil-insert-state-exit-hook=            |
+| =FileType python= | =python-mode-hook=                       |
+| =BufReadPost=     | =find-file-hook=                         |
+| =BufWrite(Pre)=   | =before-save-hook= or =write-file-hooks= |
+| =BufWritePost=    | =after-save-hook=                        |
+| =FocusGained=     | =focus-in-hook=                          |
+| =FocusLost=       | =focus-out-hook=                         |
+| =VimLeave(Pre)=   | =kill-emacs-hook=                        |
 
 * Other Emacs Tips
 ** Packages/Plugins
