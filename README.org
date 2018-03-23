@@ -759,18 +759,18 @@ You can start emacs with the =--debug-init= flag when there is some problem in y
 
 * FAQ
 ** Is emacs slow to start?
-No, people's init files are usually the problem. To test emacs' startup speed, you can start it without loading your init file using ~emacs -q~ (there is also ~emacs -Q~). Even with over 100 packages, the startup time shouldn't be increased very much if you properly defer the loading of your packages when possible.
+No, people's init files are usually the problem. To test emacs' startup speed, you can start it without loading your init file using ~emacs -Q~. Even with hundreds of packages, the startup time shouldn't be increased very much if you properly defer the loading of your packages when possible.
 
-Deferring a package from loading often just involves not putting a ~(require 'package)~ in your config. When you install a package through =package.el=, autoloads are automatically generated for functions that have autoload cookies (=;;;###autoload=). This means that if you bind a key to one of these autoloaded commands, the corresponding package will be loaded when you first use that key. Modes can also be autoloaded (e.g. loading is deferred until a certain filetype is opened or a hook runs).
+Deferring a package from loading often just involves not putting a ~(require 'package)~ in your config. When you install a package through =package.el= (and most alternative package managers), autoloads are automatically generated for functions that have autoload cookies (=;;;###autoload=). This means that if you bind a key to one of these autoloaded commands, the corresponding package will be loaded when you first press that key. Major modes should normally only be loaded when a file of the corresponding type is first loaded. Minor mode activation commands also should be autoloaded. A common way of activating minor modes is by using hooks (e.g. ~(add-hook 'emacs-lisp-mode #'lispy-mode)~).
 
 Even if your init is not too optimized, you can you can use emacs' server functionality so that you only need to start emacs once. You can start the server either putting ~(server-start)~ in your init file or by using ~emacsclient~ or ~emacs~ (with the =--daemon= flag) to create it. You can connect to a server using ~emacsclient~. I personally use ~emacsclient~ as my EDITOR and have a key bound to ~emacsclient -a "" -c~, which will open a new graphical emacs frame and start the server if it isn't already running. See the ~emacsclient~ manpage and the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][corresponding emacs manual section]] for more information.
 
 For a convenient way to control package loading, see [[https://github.com/jwiegley/use-package][use-package]]. For a way to profile your init file(s), see [[https://github.com/dholm/benchmark-init-el][benchmark-init]] and [[https://github.com/jschaf/esup][esup]].
 
 ** How do I improve emacs' performance?
-If you're encountering lag while using emacs, it's likely due to part of your configuration. The most common culprit for slowdown is =linum-mode=. =nlinum= is a faster alternative. Some people don't use line numbers at all in emacs.
+If you're encountering lag while using emacs, it's likely due to part of your configuration. A common culprit for slowdown is =linum-mode=. =nlinum= is a faster alternative, and emacs now has line numbers builtin which should be preferred (see the =display-line-numbers= variable).
 
-I've also found that =git-gutter= can cause major slowdown in large buffers with a lot of changes. I've heard that =fic-mode= can also cause problems. In really large files, you may need to disable some of your minor modes or switch to fundamental mode. If you're having trouble quickly finding the culprit of slowdowns, you should probably try profiling.
+I've also found that =git-gutter=, for example, can cause major slowdowns in large buffers with a lot of changes. I've heard that =fic-mode= can also cause problems. In really large files, you may need to disable some of your minor modes, switch to fundamental mode, or use [[https://github.com/m00natic/vlfi][vlf]]. If you're having trouble quickly finding the culprit of slowdowns, you should try profiling with ~profiler-start~.
 
 ** Does emacs have vim-like tabs (distinct window configurations)?
 No, but there are plenty of packages that add this feature. Elscreen is often recommended, but it is limited to 10 tabs/screens, old, and not as good as the alternatives in my opinion. I personally use [[https://github.com/pashinin/workgroups2][workgroups2]]. It probably has the most features compared with alternatives, but it is unmaintained, so I'd probably recommend using [[https://github.com/wasamasa/eyebrowse][eyebrowse]] instead. There are other alternatives listed in the eyebrowse readme as well.
@@ -803,17 +803,19 @@ This is also not possible by default. See the previous link.
 ** How do I copy and paste to/from the clipboard in terminal emacs?
 For osx (with pbcopy) and linux (with xclip), you can install =xclip.el= for this functionality. I have this in my configuration to turn it on when I open emacs in a terminal:
 #+begin_src emacs-lisp
-(defun noct:conditionally-turn-on-xclip-mode (_)
-  (unless (display-graphic-p)
+(defun noct:conditionally-toggle-xclip-mode ()
+  (if (display-graphic-p)
+      (if (bound-and-true-p xclip-mode)
+          (xclip-mode -1))
     (xclip-mode)))
 
-(noct:conditionally-turn-on-xclip-mode nil)
+(noct:conditionally-toggle-xclip-mode)
 
-(add-hook 'after-make-frame-functions
-          #'noct:conditionally-turn-on-xclip-mode)
+(add-hook 'focus-in-hook
+          #'noct:conditionally-toggle-xclip-mode)
 #+end_src
 
-If you don't use emacsclient, you don't need to use a hook at all. If you do use emacsclient, you'll still want to run this in your init file initially or add it to the =after-init-hook= since functions added to =after-make-frame-functions= won't run when the first emacs frame is created (the init file is read after the first frame is created).
+If you don't use emacsclient for terminal instances, you don't need to use a hook at all. If you do use emacsclient for both graphical and terminal instances, then this should work in theory if your terminal supports =focus-in-hook= (e.g. st and kitty). That said, even though the mode is correctly toggled for me, it doesn't work in an emacsclient terminal frame unfortunately.
 
 ** Can I have better completion in the ex command line?
 ~ivy-mode~, for example, does work in the ex command line, but it must be manually triggered. Because of how completion in the command line works, there is no way as far as I'm aware to have automatic completion popups. Company does work with =q:=, but by default, the completions it suggests may not be too useful.
@@ -822,40 +824,27 @@ If you don't use emacsclient, you don't need to use a hook at all. If you do use
 The simplest way is to install and use a package like [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] or [[https://github.com/noctuid/lispyville][lispyville]] that will prevent evil's operators from unbalancing parentheses. Lispyville only remaps evil's operators by default, so you can ignore its other functionality (and lispy too) if you want.
 
 ** How can I have relative line numbers?
-Take a look at [[https://github.com/coldnew/linum-relative][linum-relative]] and [[https://github.com/CodeFalling/nlinum-relative][nlinum-relative]]. Nlinum-relative only redisplays during idle time. If you don't mind this, it shouldn't slow down emacs and looks quite nice. You can also lower the idle delay if you want. Here is the config I've started using to replicate [[https://github.com/myusuf3/numbers.vim][numbers.vim]]:
+Using builtin line numbers is now the best solution. Here's my configuration that mimics [[https://github.com/myusuf3/numbers.vim][numbers.vim]]:
 #+begin_src emacs-lisp
-(defun noct:nlinum-setup ()
-  "Use absolute line numbers in insert state and relative ones in normal state.
-Applies only for the current buffer."
-  (nlinum-mode)
-  ;; maybe useful if you're not using normal as the initial state
-  (when (eq evil-state 'normal)
-    (nlinum-relative-on))
-  (add-hook 'evil-insert-state-exit-hook #'nlinum-relative-on nil t)
-  (add-hook 'evil-insert-state-entry-hook #'nlinum-relative-off nil t))
+(setq-default display-line-numbers 'visual
+              display-line-numbers-widen t
+              ;; this is the default
+              display-line-numbers-current-absolute t)
 
-(add-hook 'prog-mode-hook #'noct:nlinum-setup)
+(defun noct:relative ()
+  (setq-local display-line-numbers 'visual))
+
+(defun noct:absolute ()
+  (setq-local display-line-numbers t))
+
+(add-hook 'evil-insert-state-entry-hook #'noct:absolute)
+(add-hook 'evil-insert-state-exit-hook #'noct:relative)
+
+;; example of customizing colors
+(custom-set-faces '(line-number-current-line ((t :weight bold
+                                                 :foreground "goldenrod"
+                                                 :background "slate gray"))))
 #+end_src
-
-One thing to note is that if you are using git-gutter or diff-hl in the margin, line numbers (longer than one digit) will end up behind the diff signs. This isn't a problem if you are using the fringe to display the diff signs. If you are using terminal emacs, you have to use the margin since there is no fringe. Git-gutter has "experimental" support for not clobbering line numbers for linum-mode, so it is possible that in the future it will also work with nlinum-mode. A workaround for diff-hl is to use the right margin to display the markers instead. One can set =diff-hl-side= /before/ diff-hl is loaded:
-#+begin_src emacs-lisp
-(setq diff-hl-side 'right)
-#+end_src
-
-You can check ~(display-graphic-p)~ to determine whether or not to use the fringe. If you use emacsclient and want to use both graphical and terminal frames, things are a bit more complicated. You can use the following function to change the settings based on the current frame:
-#+begin_src emacs-lisp
-(defun noct:change-diff-location ()
-  "Put diff markers in the margin or fringe based on (display-graphic-p)."
-  (cond ((display-graphic-p)
-         (when diff-hl-margin-mode
-           (diff-hl-margin-mode -1))
-         (customize-set-variable 'diff-hl-side 'left))
-        (t
-         (diff-hl-margin-mode)
-         (customize-set-variable 'diff-hl-side 'right))))
-#+end_src
-
-You'll have to choose a hook to add this to. Using =focus-in-hook= won't work because it doesn't work with a terminal frame (at least it doesn't work for me; I couldn't find anything in the documentation about whether it should work). For vim, there is a plugin that uses tmux to get =FocusGained= to work in the terminal (see [[https://github.com/tmux-plugins/vim-tmux-focus-events][here]]; there is also mention of a patch to natively add this functionality to vim), so I assume it would also be possible to do something similar with emacs.
 
 ** Does emacs have support for folding?
 Yes, evil has integration with various emacs "folding" mechanisms builtin (such as origami, hideshow, and outline-mode/org-mode/markdown-mode; see =evil-fold-list=). Not all of vim's =z= keys will work though.
@@ -875,6 +864,7 @@ The other way would be to use ~evil-define-minor-mode-key~ which was introduced 
 (evil-define-minor-mode-key 'normal 'org-src-mode
   (kbd "SPC '") 'org-edit-src-exit)
 #+end_src
+
 * Plan to Add
 - A section on configuring undo (e.g. the size of undo units)
 - A section giving equivalent vim and emacs settings
