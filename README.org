@@ -726,6 +726,16 @@ TODO
 *** :suppress-operator
 Commands with a non-nil =:suppress-operator= property (e.g. ~keyboard-quit~, ~evil-force-normal-state~, and operators) will cause the operator (and repeat recording) to be aborted. For example, if you press =d ESC= or =d C-g=, ~evil-delete~ will quit and not delete anything.
 
+*** :motion
+The =:motion= command property is used for operators to automatically use the range given by some motion. This means that the defined operator will not be usable with motions/text objects, so it is generally not useful. For example, this is how =s= / ~evil-substitute~ is defined:
+#+begin_src emacs-lisp
+(evil-define-operator evil-substitute (beg end type register)
+  "Change a character."
+  :motion evil-forward-char
+  (interactive "<R><x>")
+  (evil-change beg end type register))
+#+end_src
+
 *** Declaring a Motion
 As an example, you don't always need use ~evil-define-motion~ to create new motions. If all you want is to do is control the repeating behavior or the behavior in visual state, you can simply change the command properties of a command. To have an emacs command act like a motion, evil provides ~evil-declare-motion~, which will set the =:repeat= property to =motion= and the =:keep-visual= property to =t=. Usually the =:keep-visual= property doesn't matter for emacs commands (they already won't exit visual state). Setting the =repeat= property will cause a command to only be part of a recorded repeat in insert state (for example, after a =C-o=).
 
