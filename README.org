@@ -661,7 +661,26 @@ Evil provides the following functions for customizing how it deals with commands
 
 Unless you want to remove command properties entirely from a command, you can just use ~evil-add-command-properties~.
 
-When creating motions, text-objects, and commands, you can set command properties with keywords (e.g. to control whether an operator will move the point or exit visual state; see the =evil/Macros= info node). Here I will talk about the main command properties that are also applicable to normal emacs commands.
+When creating motions, text-objects, and commands, you can set command properties with keywords (e.g. to control whether an operator will move the point or exit visual state; see the =evil/Macros= info node). For example:
+#+begin_src emacs-lisp
+(evil-define-operator some-operator (args)
+  "Docstring."
+  ;; command properties go after the docstring and before the interactive codes
+  :repeat nil
+  (interactive "...")
+  ;; ...
+  )
+#+end_src
+
+Note that operators, commands, motions, and text objects all have default non-nil properties. Not all properties are applicable to all macros (again, see the =Macros= section of the evil info manual).
+
+The default properties for operators are =:repeat t :move-point t keep-visual t :supress-operator t=.
+
+The default properties for commands are =:repeat t=.
+
+The default properties for motions are =:repeat 'motion :keep-visual t=.
+
+The default properties for text objects are =:repeat 'motion :extend-selection t :keep-visual t=.
 
 *** :repeat
 The =:repeat= property is used to determine how evil records information for repeating later with ~evil-repeat~. These symbols are the possible values by default:
@@ -683,20 +702,29 @@ Evil also provides some wrappers around ~evil-add-command-properties~ to set the
 ~evil-declare-repeat~ and ~evil-declare-not-repeat~ are the most commonly useful ones. You'll use them for configuring whether a command should be repeatable. See the help text and functions in =evil-repeat.el= for more information. For examples of these being used, I'd recommend looking at =evil-integration.el=.
 
 *** :jump
-The =:jump= property takes a boolean value. If a command has a non-nil jump property value, the location prior to running the command will be recorded in the jump list to later be navigated to with =C-o= (~evil-jump-backward~) and =C-i= (~evil-jump-forward~). Commands without this command property will not add a position to the jump list. For example, you could use this to have git-gutter's command for navigating hunks add locations to the jump list:
-
+The =:jump= property takes a boolean value. If a command has a non-nil jump property value, the location prior to running the command will be recorded in the jump list to later be navigated to with =C-o= (~evil-jump-backward~) and =C-i= (~evil-jump-forward~). Commands without this command property will not add a position to the jump list. For example, you could use this to have git-gutter's commands for navigating hunks save the current location before jumping:
 #+begin_src emacs-lisp
 (evil-add-command-properties #'git-gutter:next-hunk :jump t)
 (evil-add-command-properties #'git-gutter:previous-hunk :jump t)
 #+end_src
+
 *** :type
-The =:type= command property determines how commands act with operators. The possible values by default are as follows:
+The =:type= command property determines how commands, motions, and text objects act with operators (e.g. see ~evil-delete~ as an example of how an operator can be defined to handle different types). The possible values by default are as follows:
 - =:line=
 - =:inclusive=
 - =:exclusive=
 - =:block=
 
-This property is mainly useful for evil text objects and motions, but it can also be used for non-evil commands. For example, if you bound =j= ~next-line~ in operator state and set its type to =:inclusive=, =dj= would no longer delete both lines entirely (~next-line~ has a type of =line= by default).
+This property is mainly useful for evil text objects and motions, but it can also be used for non-evil commands. For example, if you bound =j= ~next-line~ in operator state and set its type to =:inclusive=, =dj= would no longer delete both lines entirely (~next-line~ has a type of =line= by default). Evil allows adding new types using ~evil-define-type~ (see the =Macros= section of the evil manual for more information).
+
+*** :move-point
+The =:move-point= property applies when defining operators and determines whether evil will move the point to the beginning of the operator range before running the operator code. Note that it defaults to =t=.
+
+*** :keep-visual
+TODO
+
+*** :suppress-operator
+Commands with a non-nil =:suppress-operator= property (e.g. ~keyboard-quit~, ~evil-force-normal-state~, and operators) will cause the operator (and repeat recording) to be aborted. For example, if you press =d ESC= or =d C-g=, ~evil-delete~ will quit and not delete anything.
 
 *** Declaring a Motion
 As an example, you don't always need use ~evil-define-motion~ to create new motions. If all you want is to do is control the repeating behavior or the behavior in visual state, you can simply change the command properties of a command. To have an emacs command act like a motion, evil provides ~evil-declare-motion~, which will set the =:repeat= property to =motion= and the =:keep-visual= property to =t=. Usually the =:keep-visual= property doesn't matter for emacs commands (they already won't exit visual state). Setting the =repeat= property will cause a command to only be part of a recorded repeat in insert state (for example, after a =C-o=).
