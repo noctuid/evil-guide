@@ -46,6 +46,10 @@
     - [[#repeat][:repeat]]
     - [[#jump][:jump]]
     - [[#type][:type]]
+    - [[#move-point][:move-point]]
+    - [[#keep-visual][:keep-visual]]
+    - [[#suppress-operator][:suppress-operator]]
+    - [[#motion][:motion]]
     - [[#declaring-a-motion][Declaring a Motion]]
 - [[#other-evil-tips][Other Evil Tips]]
   - [[#state-indicator][State Indicator]]
@@ -207,14 +211,14 @@ Emacs also provides a [[https://www.gnu.org/software/emacs/manual/html_node/emac
 ** Keybindings in Emacs
 Unlike in vim where keybindings are often made in terms of other keys, in emacs you usually bind keys to named commands. You can bind keys to other keys and keyboard macros (a potentially better approach for this is given in [[#using-emacs-keybindings-in-normal-state][Using Emacs Keybindings in Normal State]]), but there is no concept of "default" keybindings, so there is no exact equivalent of vim's ~noremap~.
 
-The main functions you'll use as an evil user for binding keys are ~define-key~ and ~evil-define-key~. Here are some of the other ones provided to you:
+The main function you'll use as an evil user for binding keys is ~evil-define-key~. Here are some of the other ones provided to you:
 
 - ~global-set-key~
 - ~evil-global-set-key~
 - ~evil-local-set-key~
 - ~evil-define-minor-mode-key~
 
-All of these, including ~evil-define-key~, are just wrappers around ~define-key~, but they all serve different purposes. I will elaborate on how these functions work and what they can be used for in the upcoming sections. I'd highly recommend looking at [[https://github.com/noctuid/general.el][general.el]] for a unified wrapper for these all keybinding functions that reduces the verbosity of key definition and provides functions that are more similar to vim's (such as ~general-nmap~) among other things.
+~evil-define-key~ can be used instead of any of these. All of these, including ~evil-define-key~, are just wrappers around ~define-key~, but they all serve different purposes. I will elaborate on how these functions work and what they can be used for in the upcoming sections. I'd highly recommend looking at [[https://github.com/noctuid/general.el][general.el]] for a unified wrapper for all keybinding functions that reduces the verbosity of key definition and provides functions that are more similar to vim's (such as ~general-nmap~) among other things.
 
 As a quick disclaimer, I'm going to be quoting (instead of sharp quoting) commands in example key definitions. Sharp quoting commands (since they are functions) is perfectly valid and, if anything, is more correct. You generally want to sharp quote functions, but for keybindings, you'll hardly ever see people do it (including in the emacs manual). I think this is mainly for historical reasons, but it may also be a stylistic preference for some.
 
@@ -243,7 +247,17 @@ To make global keybindings in emacs without evil, one would normally use ~global
 - =evil-inner-text-objects-map=
 - =evil-replace-state-map=
 
-Most of these should be self-explanatory coming from vim. Emacs state is similar to insert state but uses emacs keybindings (e.g. =C-n= is bound to ~next-line~ instead of to ~evil-complete-next~). For the most part, the keys are the same as if you weren't using evil at all in emacs state. Motion state is a bit strange. Keys bound in motion state are inherited in the normal, visual, and operator state keymaps if they are not shadowed. For example, ~evil-next-visual-line~ is bound to =gj= in motion state instead of in the normal state keymap (you can check this with ~(lookup-key evil-normal-state-map "gj")~ which will return =nil=). This means that if you want to rebind a motion key like =j= or =k= in the normal, visual, and operator states, you can rebind it in just motion state. Similarly, if you look up the operator keys such as =d=, you will find that they are only explicitly bound in normal state and not in visual state (with the exception of operators that are bound to different keys in visual state like =u=, =U=, and =R=). Also note that defining a key in =evil-visual-state-map= is more like =xmap= in vim since there is no "select" state in evil. There are also buffer local versions of these states (e.g. ~evil-normal-state-local-map~).
+There are also buffer local versions of these (e.g. ~evil-normal-state-local-map~).
+
+Most of these should be self-explanatory coming from vim. Emacs state is similar to insert state but uses emacs keybindings (e.g. =C-n= is bound to ~next-line~ instead of to ~evil-complete-next~). For the most part, the keys are the same as if you weren't using evil at all in emacs state (apart from =evil-toggle-key= which enters/exits emacs state, =C-z= by default).
+
+Motion state is a bit strange. Keys bound in motion state are inherited in the normal, visual, and operator state keymaps if they are not shadowed. The same inheritance rules apply to normal state, and the main reason motion state exists is for use with read-only modes where insertion keybindings aren't useful. For example, motion state is the default state for =help-mode=. This means that, by default, only keys bound in motion state will work in =help-mode=.
+
+I personally think that the existence of motion state is a bad idea since it often confuses beginners as there is no vim equivalent and its purpose may not be immediately clear, has a misleading name (it isn't only used for motions), addresses what I consider a non-issue (e.g. accidentally pressing =i= in a read-only buffer), and addresses this issue poorly. For example, motion state isn't suitable for all read-only modes (e.g. motions don't make sense in =ediff-mode=), and remapping insertion commands to be ignored (which is what [[https://github.com/emacs-evil/evil-collection][evil-collection]] now does) is a more foolproof and unobtrusive alternative to creating new states. That said, as long as you remember that evil binds motions and some other commands in motion state by default and are aware of =evil-motion-state-modes= and ~evil-set-initial-state~ (see [[#make-evil-normal-state-the-initial-state-always][Make Evil Normal State the Initial State Always]] for information on using normal state instead of motion state in all modes), you shouldn't encounter any issues.
+
+If you are ever want to know what state a key is bound in, you can check =evil-maps.el= or use ~lookup-key~. For example, ~evil-next-visual-line~ is bound to =gj= in motion state instead of in the normal state keymap (you can check this with ~(lookup-key evil-normal-state-map "gj")~ which will return =nil=). Similarly, if you look up the operator keys such as =d=, you will find that they are only explicitly bound in normal state and not in visual state. Generally, keys are only bound directly in visual state when they have a different behavior from the normal state keys (e.g. =u= and =U= for altering case).
+
+Also note that defining a key in =evil-visual-state-map= is more like =xmap= in vim since there is no "select" state in evil.
 
 These are the other evil keymaps that might be useful:
 
@@ -252,21 +266,33 @@ These are the other evil keymaps that might be useful:
 - =evil-command-window-mode-map= (=q:=; you'd use =evil-define-key= for this)
 - =evil-window-map= (a prefix map for the =C-w= keys)
 
-Since =define-key= is the basis for key definition in emacs, I will begin by explaining it. The basic format of ~define-key~ is ~(define-key <keymap> <key> <definition>)~. The specified key can be a string (or something that evaluates to a string) or a vector. You probably won't want to use a vector of characters instead of a string, but you can use a vector to [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Remapping-Commands.html][remap a command]] (you could also use advice to do this globally). The definition will normally be a command (or something that evaluates to one), but it can also be a keymap or a string. A key bound to a keymap is a prefix key. Binding a key to a string will cause emacs to lookup that string and execute the command it is bound to.
+Since =define-key= is the basis for key definition in emacs, I will begin by explaining it. The basic format of ~define-key~ is ~(define-key <keymap> <key> <definition>)~. The specified key can be a string (or something that evaluates to a string) or a vector. You probably won't want to use a vector of characters instead of a string, but you can use a vector to [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Remapping-Commands.html][remap a command]], for example. The definition will normally be a command (or something that evaluates to one), but it can also be a keymap or a string. A key bound to a keymap is a prefix key. Binding a key to a string will cause emacs to execute that string as a keyboard macro. See the help text for ~define-key~ (e.g. =C-h f define-key RET=) for more information on valid definitions.
 
 Here is what a basic =nmap= command equivalent would look like in emacs:
 #+begin_src emacs-lisp
 (define-key evil-normal-state-map "j" 'evil-next-visual-line)
 (define-key evil-normal-state-map "k" 'evil-previous-visual-line)
+
+;; with `evil-define-key'
+(evil-define-key nil evil-normal-state-map
+  "j" 'evil-next-visual-line
+  "k" 'evil-previous-visual-line)
+
 ;; with general.el
-(general-nmap "j" 'evil-next-visual-line
-              "k" 'evil-previous-visual-line)
+(general-nmap
+  "j" 'evil-next-visual-line
+  "k" 'evil-previous-visual-line)
 #+end_src
 
 Evil also provides a convenience function called ~evil-global-set-key~ that allows you to simply specify the name of the state as opposed to the full keymap name:
 #+begin_src emacs-lisp
 (evil-global-set-key 'motion "j" 'evil-next-visual-line)
 (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+;; `evil-define-key' can also used with "global"
+(evil-define-key 'motion 'global
+  "j" 'evil-next-visual-line
+  "k" 'evil-previous-visual-line)
 #+end_src
 Remember that binding a key in motion state is like binding a key in the normal, visual, and operator states all at once (unless that key is already bound in one of those states).
 
@@ -278,27 +304,35 @@ You can write the key portion as just a string, but often people will use ~kbd~ 
 (general-nmap "C-j" 'evil-next-visual-line)
 #+end_src
 
-An alternate way to define keys globally is to use ~evil-define-key~. I talk about this later in [[#preventing-certain-keys-from-being-overridden][Preventing Certain Keys From Being Overridden]].
-
 ** Unbinding a Key
-There is no dedicated function for unbinding a key in emacs. To unbind a key, you simply bind it to =nil=.
+There is no dedicated alternative to ~define-key~ for unbinding a key in emacs (though there are wrappers around ~define-key~ like ~global-unset-key~). To unbind a key, you simply bind it to =nil=.
 
 ** Leader Key
 There is no exact equivalent of a "leader" key in evil. You can have named prefix keys with a package like [[https://github.com/noctuid/general.el][general.el]] or bind a prefix key to a named keymap. This will allow you to easily change your "leader"/prefix key later. Here's an example that doesn't use any extra packages:
 #+begin_src emacs-lisp
 (defvar my-leader-map (make-sparse-keymap)
   "Keymap for \"leader key\" shortcuts.")
+
+;; binding "," to the keymap
 (define-key evil-normal-state-map "," my-leader-map)
+
 ;; binding ",b"
 (define-key my-leader-map "b" 'list-buffers)
+
 ;; change the "leader" key to space
 (define-key evil-normal-state-map "," 'evil-repeat-find-char-reverse)
 (define-key evil-normal-state-map (kbd "SPC") my-leader-map)
+
+;; general.el can automate the process of prefix map/command creation
+(general-nmap
+  :prefix "SPC"
+  :prefix-map 'my-leader-map
+  "," 'list-buffers)
 #+end_src
 
-This isn't quite the same as the leader key in vim. In vim, =<leader>= is builtin and commonly used by plugins to bind keys. This is convenient since it gives you some control over what you would like to use as a "main" prefix key without having to manually make keybindings for it with every plugin. In emacs, evil packages generally do not force the use of some extra package that provides "leader" functionality onto the user, and there is no standard, generic "leader" prefix map provided by evil. This means that "leader" keybindings in emacs will be your personal ones.
+This isn't quite the same as the leader key in vim. In vim, =<leader>= is builtin and sometimes used by plugins to bind keys (despite being considered bad practice). This could potentially be convenient since it gives you some control over what you would like to use as a "main" prefix key without having to manually make keybindings for it with every plugin. In emacs, evil packages generally do not force the use of some extra package that provides "leader" functionality onto the user, and there is no standard, generic "leader" prefix map provided by evil. This means that "leader" keybindings in emacs will be your personal ones. Note that some packages do provide prefix keymaps that you can then choose a prefix key for though (e.g. =projectile-command-map=).
 
-In terms of functionality, it might be said that named prefixes are actually slightly more convenient in emacs. You can use as many prefix keymaps as you would like and can bind as many keys to the same prefix keymap as you would like (which may be useful if you want to use a different key to access a prefix keymap in insert state).
+In terms of functionality, it might be said that named prefixes are actually slightly more convenient in emacs than =<leader>=. You can use as many prefix keymaps as you would like and can bind as many keys to the same prefix keymap as you would like (which may be useful if you want to use a different key to access a prefix keymap in insert state). Note that you can essentially achieve the same functionality (multiple named prefixes) in vim using =<Plug>= mappings.
 
 For an example of a prefix keymap used by evil, see =evil-window-map= which is used for =C-w= commands. From =evil-maps.el=:
 #+begin_src emacs-lisp
@@ -336,27 +370,31 @@ Emacs does not have a builtin function for creating buffer local keybindings (th
 (evil-local-set-key 'normal key def)
 ;; is the same as
 (define-key evil-normal-state-local-map key def)
+
+;; alternatively with `evil-define-key'
+(evil-define-key 'normal 'local key def)
 #+end_src
 
-Let's say you are using =SPC= as a generic prefix key in normal state and want to use Space+' for ~org-edit-special~ and ~org-edit-src-exit~. You can do the following to set a buffer local keybinding:
+There are good use cases for local keybindings (e.g. maybe you want to bind keys to jump to particular headings in a specific org file), but most are specific to the person and not generally useful. Here's an example that is a workaround to a deficiency with ~evil-define-key~ (again, [[[[#why-dont-keys-defined-with-evil-define-key-work-immediately][see here]] for a preferable solution). Maybe you want to bind =SPC '= to toggle editing an org source block. Keys bound with ~evil-define-key~ in =org-src-mode-map= won't take effect immediately, so you can use a hook and local keybindings as one possible workaround:
 #+begin_src emacs-lisp
 (evil-define-key 'normal org-mode-map
   (kbd "SPC '") 'org-edit-special)
+
 ;; you can do this, but the key won't work immediately
 ;; (evil-define-key 'normal org-src-mode-map
 ;;   (kbd "SPC '") 'org-edit-src-exit)
-;; this is a potential workaround:
+
+;; this is a potential workaround
 (defun my-setup-org-edit-src-exit ()
   (evil-local-set-key 'normal (kbd "SPC '") 'org-edit-src-exit))
+
 (add-hook 'org-src-mode-hook #'my-setup-org-edit-src-exit)
 #+end_src
 
-This is closer to how you might define local keybindings in vim (with an autocommand and buffer local keybindings). Note that you can replace the =#'my-setup...= with the actual =(defun...)= without problems, but =defun='s return value is technically undefined.
-
-If you ever need buffer local keybindings, they are there, but for this particular problem, there are also other solutions (see [[#why-dont-keys-defined-with-evil-define-key-work-immediately][Why don't keys defined with ~evil-define-key~ work (immediately)?]]).
+This is closer to how you might define local keybindings in vim (with an autocommand and buffer local keybindings). Note that you can replace the =#'my-setup...= with the actual =(defun...)= without problems, but =defun='s return value is technically undefined, so this may not work in future versions of Emacs.
 
 ** Mapping Under Keys That Aren't Prefix Keys
-In vim, it is somewhat common to bind non-operator functionality under operators (e.g. =co<keys>= to toggling options). It's is also somewhat common for people to do something like remap =cw= to =ciw=. With evil, it is not possible to bind something like =cow= directly since =c= is not a prefix key (it is already bound to ~evil-change~). For this specific case, you can bind under ~evil-operator-state-map~. If you want to have different things executed based on the specific operator (=d= vs. =c=) you can check =evil-this-operator=; this is how [[https://github.com/timcharper/evil-surround/blob/master/evil-surround.el][evil-surround]] works.
+In vim, it is somewhat common to bind non-operator functionality under operators (e.g. =co<keys>= to toggling options). It's is also somewhat common for people to do something like remap =cw= to =ciw=. With evil, it is not possible to bind something like =cow= directly since =c= is not a prefix key (it is already bound to ~evil-change~). For this specific case, you can bind under ~evil-operator-state-map~. If you want to have different things executed based on the specific operator (=d= vs. =c=) you can check =evil-this-operator=. [[https://github.com/emacs-evil/evil-collection/blob/6ddfc3f7ffc09ae8fcee05e044d3a35aaddacf94/evil-collection-vdiff.el#L40][This]] is how evil-collection defines =dp= and =do= for vdiff mode and how I would recommend other packages implement this functionality when possible.
 
 This method won't work, however, if you wanted to rebind something like =ct<key>= or =cw= (you'd have to redefine ~evil-find-char-to~ and ~evil-forward-word-begin~). For a more general solution that will work for both cases, there is general.el's ~general-key-dispatch~ macro. For more information and specific examples see [[https://github.com/noctuid/general.el#mapping-under-non-prefix-keys][here]].
 
@@ -898,6 +936,10 @@ There are several possible workarounds. You can use the mode's hook to either bi
 The other way would be to use ~evil-define-minor-mode-key~ which was introduced specifically as a result of this issue:
 #+begin_src emacs-lisp
 (evil-define-minor-mode-key 'normal 'org-src-mode
+  (kbd "SPC '") 'org-edit-src-exit)
+
+;; `evil-define-key' with a quoted symbol instead of a keymap works the same
+(evil-define-key 'normal 'org-src-mode
   (kbd "SPC '") 'org-edit-src-exit)
 #+end_src
 
