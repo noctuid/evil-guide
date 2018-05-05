@@ -22,7 +22,6 @@
   - [[#global-keybindings-and-evil-states][Global Keybindings and Evil States]]
   - [[#unbinding-a-key][Unbinding a Key]]
   - [[#leader-key][Leader Key]]
-    - [[#using-hydra-for-leader-key][Using Hydra for Leader Key]]
   - [[#mode-specific-keybindings][Mode Specific Keybindings]]
   - [[#buffer-local-keybindings][Buffer Local Keybindings]]
   - [[#mapping-under-keys-that-arent-prefix-keys][Mapping Under Keys That Aren't Prefix Keys]]
@@ -310,22 +309,7 @@ For an example of a prefix keymap used by evil, see =evil-window-map= which is u
 
 Note the use of ~define-prefix-command~ instead of ~defvar~. Either way works, but ~define-prefix-command~ is specifically intended for this purpose (see its documentation for more information).
 
-*** Using Hydra for Leader Key
-    
-Another approach to emulate the leader key is using [[https://github.com/abo-abo/hydra][hydra]]: you can (recursively) map prefixed keys to a hydra, avoiding the boiler plate of having to create a map with =(make-sparse-keymap)= /while/ getting a custom help message.
-#+begin_src emacs-lisp
-(defhydra my-hydra (:exit t)
-  "My hydra"
-  ("b" list-buffers "list-buffers")
-  )
-(define-key evil-normal-state-map "\\" 
-  (lambda ()
-    (interactive)
-    (evil-without-repeat
-      (call-interactively #'my-hydra/body))))
-#+end_src
-
-You must use the ~evil-without-repeat~ macro to call the hydra, as you prevent the latter being called when using =.= for ~evil-repeat~.
+You can check out another alternatives for emulating the leader key in the [[https://github.com/noctuid/evil-guide/wiki#using-hydra-for-leader-key][wiki]]
 
 ** Mode Specific Keybindings
 ~evil-define-key~ can be used to define keys in specific states for specific modes. The basic format is ~(evil-define-key <state> <keymap> <key> <definition> ...)~. Unlike with ~define-key~, ~evil-define-key~ can be used to define multiple keys at once. The state argument can be a single state or a list of states. ~evil-define-key~ will also defer keybindings if the specified keymap does not exist. This means that you can use it without putting it in an ~eval-after-load~ for packages that haven't been loaded yet.
