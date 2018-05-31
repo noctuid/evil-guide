@@ -27,6 +27,7 @@
   - [[#leader-key][Leader Key]]
   - [[#mode-specific-keybindings][Mode Specific Keybindings]]
   - [[#buffer-local-keybindings][Buffer Local Keybindings]]
+  - [[#binding-keys-to-keys-keyboard-macros][Binding Keys to Keys (Keyboard Macros)]]
   - [[#mapping-under-keys-that-arent-prefix-keys][Mapping Under Keys That Aren't Prefix Keys]]
 - [[#advice][Advice]]
 - [[#further-integrating-evil-and-emacs][Further Integrating Evil and Emacs]]
@@ -209,7 +210,7 @@ Emacs also provides a [[https://www.gnu.org/software/emacs/manual/html_node/emac
 
 * Keybindings and States
 ** Keybindings in Emacs
-Unlike in vim where keybindings are often made in terms of other keys, in emacs you usually bind keys to named commands. You can bind keys to other keys and keyboard macros (a potentially better approach for this is given in [[#using-emacs-keybindings-in-normal-state][Using Emacs Keybindings in Normal State]]), but there is no concept of "default" keybindings, so there is no exact equivalent of vim's ~noremap~.
+Unlike in vim where keybindings are often made in terms of other keys, in emacs you usually bind keys to named commands. You /can/ bind keys to act as other keys, but there is no concept of "default" keybindings, so there is no exact equivalent of vim's ~noremap~ (though the key translation functions provided by general.el and evil-collection are similar). When possible, you should prefer to bind to named commands and keymaps, but there are some cases where it may be simpler to use keyboard macros (see [[#binding-keys-to-keys-keyboard-macros][Binding Keys to Keys (Keyboard Macros)]]).
 
 The main function you'll use as an evil user for binding keys is ~evil-define-key~. Here are some of the other ones provided to you:
 
@@ -266,7 +267,7 @@ These are the other evil keymaps that might be useful:
 - =evil-command-window-mode-map= (=q:=; you'd use =evil-define-key= for this)
 - =evil-window-map= (a prefix map for the =C-w= keys)
 
-Since =define-key= is the basis for key definition in emacs, I will begin by explaining it. The basic format of ~define-key~ is ~(define-key <keymap> <key> <definition>)~. The specified key can be a string (or something that evaluates to a string) or a vector. You probably won't want to use a vector of characters instead of a string, but you can use a vector to [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Remapping-Commands.html][remap a command]], for example. The definition will normally be a command (or something that evaluates to one), but it can also be a keymap or a string. A key bound to a keymap is a prefix key. Binding a key to a string will cause emacs to execute that string as a keyboard macro. See the help text for ~define-key~ (e.g. =C-h f define-key RET=) for more information on valid definitions.
+Since =define-key= is the basis for key definition in emacs, I will begin by explaining it. The basic format of ~define-key~ is ~(define-key <keymap> <key> <definition>)~. The specified key can be a string (or something that evaluates to a string) or a vector. You probably won't want to use a vector of characters instead of a string, but you can use a vector to [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Remapping-Commands.html][remap a command]], for example. The definition will normally be a command (or something that evaluates to one), but it can also be a keymap or a string. A key bound to a keymap is a prefix key. Binding a key to a string will cause emacs to execute that string as a keyboard macro (see [[#binding-keys-to-keys-keyboard-macros][Binding Keys to Keys (Keyboard Macros)]] for examples). See the help text for ~define-key~ (e.g. =C-h f define-key RET=) for more information on valid definitions.
 
 Here is what a basic =nmap= command equivalent would look like in emacs:
 #+begin_src emacs-lisp
@@ -394,6 +395,37 @@ There are good use cases for local keybindings (e.g. maybe you want to bind keys
 #+end_src
 
 This is closer to how you might define local keybindings in vim (with an autocommand and buffer local keybindings). Note that you can replace the =#'my-setup...= with the actual =(defun...)= without problems, but =defun='s return value is technically undefined, so this may not work in future versions of Emacs.
+
+** Binding Keys to Keys (Keyboard Macros)
+While you should generally avoid binding keys to keyboard macros when you can bind directly to a command or keymap, binding to a sequence of keys can be simpler than creating new commands:
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global
+  ;; select the previously pasted text
+  "gp" "`[v`]"
+  ;; run the macro in the q register
+  "Q" "@q")
+
+(evil-define-key 'visual 'global
+  ;; run macro in the q register on all selected lines
+  "Q" (kbd ":norm @q RET")
+  ;; repeat on all selected lines
+  "." (kbd ":norm . RET"))
+
+;; alternative command version
+(defun my-norm@q ()
+  "Apply macro in q register on selected lines."
+  (interactive)
+  (evil-ex-normal (region-beginning) (region-end) "@q"))
+
+(evil-define-key 'visual 'global "Q" #'my-norm@q)
+#+end_src
+
+These examples are similar to how you might do things in vim. Keyboard macros are fine for simple cases, but note that they do have some limitations. For example:
+- The prefix argument/count will apply to the macro (i.e. it will run that many times), not to the next command that runs
+- Macro are not suitable for incomplete sequences (e.g. =C-c= or another key bound to a keymap)
+- Using =C-h k=, the help buffer will just show the keyboard macro, not the help text for the actual command that will run
+
+For a potentially better approach for simulating keys see [[#using-emacs-keybindings-in-normal-state][Using Emacs Keybindings in Normal State]].
 
 ** Mapping Under Keys That Aren't Prefix Keys
 In vim, it is somewhat common to bind non-operator functionality under operators (e.g. =co<keys>= to toggling options). It's is also somewhat common for people to do something like remap =cw= to =ciw=. With evil, it is not possible to bind something like =cow= directly since =c= is not a prefix key (it is already bound to ~evil-change~). For this specific case, you can bind under ~evil-operator-state-map~. If you want to have different things executed based on the specific operator (=d= vs. =c=) you can check =evil-this-operator=. [[https://github.com/emacs-evil/evil-collection/blob/6ddfc3f7ffc09ae8fcee05e044d3a35aaddacf94/evil-collection-vdiff.el#L40][This]] is how evil-collection defines =dp= and =do= for vdiff mode and how I would recommend other packages implement this functionality when possible.
@@ -538,7 +570,7 @@ For example, using [[https://github.com/noctuid/general.el#simulating-keypresses
 (define-key evil-normal-state-map (kbd "j") (general-key "C-n" :state 'emacs))
 #+end_src
 
-With this configuration, you could, for example, press =SPC C-e= in normal state in org mode to bring up the export dispatcher. Emacs allows you to bind keys to keymaps, so the following is also possible:
+With the above configuration, you could, for example, press =SPC C-e= in normal state in org mode to bring up the export dispatcher. Emacs allows you to bind keys to keymaps, so the following is also possible:
 #+begin_src emacs-lisp
 (define-key evil-normal-state-map (kbd "SPC h") help-map)
 (define-key evil-normal-state-map (kbd "SPC x") ctl-x-map)
@@ -603,7 +635,7 @@ You can always remove this advice later:
 #+end_src
 
 *** Modal Minibuffer
-Normal state does /kind of/ work in the minibuffer if you bind a key to ~evil-normal-state~, but I don't personally find it to be usable. For the ex command line specifically, it's worth noting that evil provides =q:=.
+Normal state does /kind of/ work in the minibuffer if you bind a key to ~evil-normal-state~. Evil collection  For the ex command line specifically, it's worth noting that evil provides =q:=.
 
 Missing using normal mode with Unite, I wrote
 [[https://noctuid.github.io/blog/2015/02/03/a-more-evil-helm/][a blog post]] a while back with the idea of using a hydra to implement modality for helm. Since then, people have created improved versions of my hydra [[https://github.com/abo-abo/hydra/wiki/Helm][for helm]], and ivy has such a hydra builtin.
