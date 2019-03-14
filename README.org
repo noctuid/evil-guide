@@ -521,11 +521,11 @@ If you wanted to override normal state with dired's keybindings, you could do th
 #+end_src
 The latter is what evil does by default (followed by an ~evil-add-hjkl-bindings~).
 
-Note that at any time you can use =C-z= (bound to ~evil-emacs-state~) to enter emacs state or =\= (bound to ~evil-execute-in-emacs-state~) to execute the next command in emacs state. In emacs state, =C-z= and =ESC= are bound to switch to the previous state. This may not be what you want if you've entered emacs state from insert state, so you may want to rebind =ESC= to always enter normal state instead:
+Note that at any time you can use =evil-toggle-key= (=C-z= by default; bound to ~evil-emacs-state~) to enter emacs state or =\= (bound to ~evil-execute-in-emacs-state~) to execute the next command in emacs state. In emacs state, =evil-toggle-key= is bound to switch to the previous state. This may not be what you want if you've entered emacs state from insert state, so you may want to also bind =ESC= to enter normal state:
 #+begin_src emacs-lisp
 (define-key evil-emacs-state-map [escape] 'evil-normal-state)
 #+end_src
-Note that in this case, attempting to rebind =(kbd "ESC")= will not work.
+Note that in this case, attempting to rebind =(kbd "ESC")= will not work in GUI Emacs (and will prevent meta from working if used in the terminal). Currently it is not possible to bind escape in emacs state for terminal Emacs (see issue #14).
 
 If you want to use emacs keybindings instead of the ones that evil makes in insert state, you can change the =evil-insert-state-bindings= variable to your liking or set =evil-disable-insert-state-bindings= to =t= before loading evil (or use customize to set it afterwards). I recommend doing this instead of aliasing or overriding ~evil-insert-state~ to ~evil-emacs-state~ because the result is pretty much the same and evil intentionally does not record repeat information in emacs state.
 
@@ -556,7 +556,7 @@ In =evil-insert-state-bindings=, evil also replaces ~delete-backward-char~ with 
 |-------------------+--------------------------------+-----------------------|
 | =<delete>=        | ~delete-char~                  | ~delete-forward-char~ |
 | =<escape>=        | ~evil-normal-state~            | acts like meta/alt    |
-| =evil-toggle-key= | ~evil-execute-in-normal-state~ | depends               |
+| =evil-toggle-key= | ~evil-emacs-state~               | depends               |
 
 If you don't like these, you can always unbind or rebind them. =evil-toggle-key= defaults to =C-z= (bound to ~suspend-frame~ by default).
 
