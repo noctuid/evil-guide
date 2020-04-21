@@ -740,8 +740,8 @@ When creating motions, text-objects, and commands, you can set command propertie
   "Docstring."
   ;; command properties go after the docstring and before the interactive codes
   :repeat nil
-  (interactive "...")
-  ;; ...
+  (interactive "…")
+  ;; …
   )
 #+end_src
 
@@ -811,6 +811,42 @@ The =:motion= command property is used for operators to automatically use the ra
 
 *** Declaring a Motion
 As an example, you don't always need use ~evil-define-motion~ to create new motions. If all you want is to do is control the repeating behavior or the behavior in visual state, you can simply change the command properties of a command. To have an emacs command act like a motion, evil provides ~evil-declare-motion~, which will set the =:repeat= property to =motion= and the =:keep-visual= property to =t=. Usually the =:keep-visual= property doesn't matter for emacs commands (they already won't exit visual state). Setting the =repeat= property will cause a command to only be part of a recorded repeat in insert state (for example, after a =C-o=).
+
+*** Interactive codes
+
+For =evil-define-command=, =evil-define-operator= and =evil-define-motion= you can make use of extra interactive codes defined within evil.
+
+This table is built on inspecting calls to =evil-define-interactive-code= in =evil-types.el=.
+
+| key    | Argument type                                                   |
+|--------+-----------------------------------------------------------------|
+| <c>    | Count                                                           |
+| <vc>   | Count, but only in visual state. [fn:code-vc]                   |
+| <C>    | Character read through `evil-read-key'                          |
+| <r>    | Untyped motion range (BEG END)                                  |
+| <R>    | Typed motion range (BEG END TYPE)                               |
+| <v>    | Typed motion range of visual range (BEG END TYPE). [fn:code-v]  |
+| <x>    | Current register                                                |
+| <y>    | Current yank-handler                                            |
+| <a>    | Ex argument                                                     |
+| <f>    | Ex file argument                                                |
+| <b>    | Ex buffer argument                                              |
+| <sh>   | Ex shell command argument                                       |
+| <fsh>  | Ex file or shell command argument                               |
+| <sym>  | Ex symbolic argument                                            |
+| <addr> | Ex line number                                                  |
+| <!>    | Ex bang argument                                                |
+| </>    | Ex delimited argument                                           |
+| <g/>   | Ex global argument                                              |
+| <s/>   | Ex substitution argument                                        |
+| <xc/>  | Ex register and count argument, both optional.[fn:code-xcslash] |
+
+[fn:code-v] If visual state is inactive then those values are nil.
+
+[fn:code-vc] This should be used by an operator taking a count. In normal state the count should not be handled by the operator but by the motion that defines the operator's range. In visual state the range is specified by the visual region and the count is not used at all. Thus in the case the operator may use the count directly.
+
+[fn:code-xcslash]Can be used for commands such as :delete [REGISTER] [COUNT] where the command can be called with either zero, one or two arguments. When the argument is one, if it's numeric it's treated as a COUNT, otherwise - REGISTER.
+
 
 * Other Evil Tips
 ** State Indicator
@@ -980,7 +1016,6 @@ The other way would be to use ~evil-define-minor-mode-key~ which was introduced 
 
 * Plan to Add
 - Add a section on configuring undo (e.g. =evil-want-fine-undo=, =evil-with-undo=, =evil-with-single-undo=, etc.)
-- Add section explaining evil interactive codes
 - Explain all command properties
 - Add section on evil's supported/missing functionality (e.g. numerical prefixes before operators aren't repeated and =:put=, =:next=, =:rewind=, etc. are missing)
 - Mention =evil-ex-map=
