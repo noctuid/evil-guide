@@ -310,7 +310,25 @@ You can write the key portion as just a string, but often people will use ~kbd~ 
 There is no dedicated alternative to ~define-key~ for unbinding a key in emacs (though there are wrappers around ~define-key~ like ~global-unset-key~). To unbind a key, you simply bind it to =nil=.
 
 ** Leader Key
-There is no exact equivalent of a "leader" key in evil. You can have named prefix keys with a package like [[https://github.com/noctuid/general.el][general.el]] or bind a prefix key to a named keymap. This will allow you to easily change your "leader"/prefix key later. Here's an example that doesn't use any extra packages:
+Evil supports using =<leader>= and =<localleader>= in keybindings.
+Here's the example from the evil manual:
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global (kbd "<leader>fs") 'save-buffer)
+#+end_src
+
+You can set the leader and localleader keys with ~evil-set-leader~:
+#+begin_src emacs-lisp
+;; set leader key in all states
+(evil-set-leader nil (kbd "C-SPC"))
+
+;; set leader key in normal state
+(evil-set-leader 'normal (kbd "SPC"))
+
+;; set local leader
+(evil-set-leader 'normal "," t)
+#+end_src
+
+You can also have named prefix keys with a package like [[https://github.com/noctuid/general.el][general.el]] or bind a prefix key to a named keymap. This will allow you to easily change your "leader"/prefix key later. Here's an example that doesn't use any extra packages:
 #+begin_src emacs-lisp
 (defvar my-leader-map (make-sparse-keymap)
   "Keymap for \"leader key\" shortcuts.")
@@ -623,9 +641,9 @@ Instead of specifically undoing all the overrides that evil makes, you may want 
 (require 'evil)
 #+end_src
 
-If you don't want anything to be overriden, this is not enough. In =evil-integration.el=, ~evil-make-overriding-map~ is used for dired and ibuffer. If you want to prevent =evil-integration.el= from being loaded, you can set =evil-want-integration= to nil /before/ loading evil. If you use [[evil-collection][evil-collection]], which provides the useful functionality from =evil-integration.el= without creating overriding keymaps, you should set this variable to nil.
+If you don't want anything to be overridden, this is not enough. In =evil-keybindings.el=, ~evil-make-overriding-map~ is used for dired and ibuffer. If you want to prevent =evil-keybindings.el= from being loaded, you can set =evil-want-keybindings= to nil /before/ loading evil. If you want predefined keybindings without the use of overriding maps, you can try [[evil-collection][evil-collection]].
 
-If you really want to prevent overriding maps from ever being created (e.g. some other evil package could do it), you can advise ~evil-overiding-map~ to prevent it from ever doing anything:
+If you really want to prevent overriding maps from ever being created (e.g. some other evil package could do it), you can advise ~evil-make-overriding-map~ to prevent it from ever doing anything:
 #+begin_src emacs-lisp
 (advice-add 'evil-make-overriding-map :override #'ignore)
 #+end_src
