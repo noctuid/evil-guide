@@ -1032,6 +1032,20 @@ The other way would be to use ~evil-define-minor-mode-key~ which was introduced 
   (kbd "SPC '") 'org-edit-src-exit)
 #+end_src
 
+The messages buffer requires special handling. Using =messages-buffer-mode-hook= will not work (possibly because the messages buffer exists so early on). You need to add a hook to run it later. ~general-add-hook~ is used here for the transient feature (this function will remove itself from =post-command-hook= after the first run in the messages buffer):
+#+begin_src emacs-lisp
+(with-eval-after-load 'evil
+  (general-add-hook 'post-command-hook
+                    (lambda (&rest _)
+                      (when (eq major-mode 'messages-buffer-mode)
+                        (evil-normalize-keymaps)
+                        t))
+                    nil
+                    nil
+                    ;; transient; remove self on success
+                    #'identity))
+#+end_src
+
 * Plan to Add
 - Add a section on configuring undo (e.g. =evil-want-fine-undo=, =evil-with-undo=, =evil-with-single-undo=, etc.)
 - Explain all command properties
