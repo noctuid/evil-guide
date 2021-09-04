@@ -936,7 +936,9 @@ If you're encountering lag while using emacs, it's likely due to part of your co
 I've also found that =git-gutter=, for example, can cause major slowdowns in large buffers with a lot of changes. I've heard that =fic-mode= can also cause problems. In really large files, you may need to disable some of your minor modes, switch to fundamental mode, or use [[https://github.com/m00natic/vlfi][vlf]]. If you're having trouble quickly finding the culprit of slowdowns, you should try profiling with ~profiler-start~.
 
 ** Does emacs have vim-like tabs (distinct window configurations)?
-No, but there are plenty of packages that add this feature. Elscreen is often recommended, but it is limited to 10 tabs/screens, old, and not as good as the alternatives in my opinion. I personally use [[https://github.com/pashinin/workgroups2][workgroups2]]. It probably has the most features compared with alternatives, but it is unmaintained, so I'd probably recommend using [[https://github.com/wasamasa/eyebrowse][eyebrowse]] instead. There are other alternatives listed in the eyebrowse readme as well.
+The state of window-configuration libraries has always been a bit compliated in Emacs. Emacs now has ~tab-line-mode~ and ~tab-bar-mode~, so use those if they work for you.
+
+There are also a large number of other packages that add support for this. I previously used [[https://github.com/pashinin/workgroups2][workgroups2]] until it broke. It looks like it is maintained again now. [[https://github.com/alphapapa/burly.el][burly]] is also worth looking into. Now I use my own frame-based solution [[https://github.com/noctuid/framegroups.el][framegroups]] for ~winner-undo~ support. [[https://github.com/akirak/frame-workflow][frame-workflow]] is similar, though it looks like it has been archived.
 
 ** What's the equivalent of ~nnoremap Y y$~?
 You can of course bind =Y= to simulate =y$= or redefine the operator, but evil has an option for this builtin. You can set =evil-want-Y-yank-to-eol= to a non-nil value before loading emacs to make this change.
