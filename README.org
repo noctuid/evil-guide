@@ -881,7 +881,7 @@ See the =Settings/The cursor= section of the evil info node for more information
 Evil lets you create new states with ~evil-define-state~ (see =Macros/States= under the evil info node). You may never need to use this, and if you're looking for something like [[https://github.com/kana/vim-submode][vim-submode]], I'd highly recommend looking at [[https://github.com/abo-abo/hydra][hydra]] instead.
 
 ** Using Escape to Exit the Minibuffer
-Escape is used as a prefix key in some parts of emacs, so you need to rebind it to =keyboard-escape-quit= in certain minibuffer-related keymaps for it to always act as expected. You could, for example, use [[https://github.com/emacs-evil/evil-collection/blob/master/evil-collection-minibuffer.el][evil-collection-minibuffer.el]] to do this.
+Escape is used as a prefix key in some parts of emacs, so you need to rebind it to =keyboard-escape-quit= in certain minibuffer-related keymaps for it to always act as expected. You could, for example, use [[https://github.com/emacs-evil/evil-collection/blob/master/modes/minibuffer/evil-collection-minibuffer.el][evil-collection-minibuffer.el]] to do this.
 
 ** Ex Command Definition
 You can define your own ex commands using ~evil-ex-define-cmd~. For example, this is how =copy= is defined:
