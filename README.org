@@ -3,6 +3,13 @@
 
 # NOTE: If you are viewing this in org-mode, it is recommended that you install and enable [[https://github.com/snosov1/toc-org][toc-org]], so that all internal links open correctly
 
+* Emacs/Evil for Vim Users
+This is not meant to be a comprehensive introductory guide to emacs or a comparison between vim and emacs. It is meant to focus specifically on evil and address questions vim users might have when first using emacs with evil. Where there are already detailed, informative resources on other related topics, I will include references instead of re-explaining things myself. This aims to be a general guide to teach the reader about how to use and configure evil as opposed to a collection of configuration snippets.
+
+For quick answers to the most frequently asked questions about evil and a basic comparison of vim and evil, see the [[#faq][FAQ]].
+
+If you have any suggestions for questions or problems it would be useful to discuss, feel free to make an issue or pull request.
+
 * Table of Contents                                                     :TOC:
 - [[#emacsevil-for-vim-users][Emacs/Evil for Vim Users]]
 - [[#bare-minimum-emacs-knowledge][Bare Minimum Emacs Knowledge]]
@@ -52,6 +59,7 @@
     - [[#suppress-operator][:suppress-operator]]
     - [[#motion][:motion]]
     - [[#declaring-a-motion][Declaring a Motion]]
+    - [[#interactive-codes][Interactive codes]]
 - [[#other-evil-tips][Other Evil Tips]]
   - [[#state-indicator][State Indicator]]
   - [[#user-created-states][User Created States]]
@@ -62,6 +70,7 @@
   - [[#packagesplugins][Packages/Plugins]]
   - [[#debugging-your-init-file][Debugging Your Init File]]
 - [[#faq][FAQ]]
+  - [[#does-evil-provide-complete-vim-emulation][Does evil provide complete vim emulation?]]
   - [[#is-emacs-slow-to-start][Is emacs slow to start?]]
   - [[#how-do-i-improve-emacs-performance][How do I improve emacs' performance?]]
   - [[#does-emacs-have-vim-like-tabs-distinct-window-configurations][Does emacs have vim-like tabs (distinct window configurations)?]]
@@ -70,6 +79,7 @@
   - [[#whats-the-equivalent-of-inoremap-jk-escape][What's the equivalent of ~inoremap jk <escape>~?]]
   - [[#whats-the-equivalent-of-nnoremap-cw-ciw][What's the equivalent of ~nnoremap cw ciw~?]]
   - [[#whats-the-equivalent-of-vim-unimpaireds-cow][What's the equivalent of vim-unimpaired's =cow=?]]
+  - [[#why-doesnt-gn-work][Why doesn't =gn= work?]]
   - [[#how-do-i-copy-and-paste-tofrom-the-clipboard-in-terminal-emacs][How do I copy and paste to/from the clipboard in terminal emacs?]]
   - [[#can-i-have-better-completion-in-the-ex-command-line][Can I have better completion in the ex command line?]]
   - [[#how-do-i-prevent-parentheses-becoming-unbalanced-in-my-init-file][How do I prevent parentheses becoming unbalanced in my init file?]]
@@ -77,11 +87,6 @@
   - [[#does-emacs-have-support-for-folding][Does emacs have support for folding?]]
   - [[#why-dont-keys-defined-with-evil-define-key-work-immediately][Why don't keys defined with ~evil-define-key~ work (immediately)?]]
 - [[#plan-to-add][Plan to Add]]
-
-* Emacs/Evil for Vim Users
-This is not meant to be a comprehensive introductory guide to emacs or a comparison between vim and emacs. It is meant to focus specifically on evil and address questions vim users might have when first using emacs with evil. Where there are already detailed, informative resources on other related topics, I will include references instead of re-explaining things myself. This aims to be a general guide to teach the reader about how to use and configure evil as opposed to a collection of configuration snippets.
-
-If you have any suggestions for questions or problems it would be useful to discuss, feel free to make an issue or pull request.
 
 * Bare Minimum Emacs Knowledge
 ** Terminology
@@ -457,7 +462,9 @@ Since this functionality is used in the next section, I'll go ahead and mention 
 * Further Integrating Evil and Emacs
 There is a common misconception that evil is unable integrate well with certain parts of emacs. What is true is that evil has some default configuration that may be annoying and does not provide default keybindings for all emacs packages. That said, once you know about the tools evil gives you, the process of integration becomes much easier. In the following sections, I will present various techniques for reconciling emacs and evil keybindings.
 
-Some people prefer to use evil only for text editing and use the default emacs keybindings for applications such as dired and mail clients. Evil makes this easy to do by altering initial states or using overriding keymaps for these modes. I personally prefer to use evil everywhere. Some people argue that the lack of default keybindings for applications like dired means that far too much work is required to use evil with them. Some argue that the lack of consistency makes evil not worth using at all. In my experience, making your own keybindings for some application like mu4e takes significantly less time than reading the documentation and can be done simultaneously. Even if you disagree, it's no longer the case that most modes have no evil support. In many cases there are packages for specific modes that will make evil keybindings for you, such as [[https://github.com/justbur/evil-magit][evil-magit]]. I don't personally use these unless they provide new functionality too, but some people find these packages indispensable. On the other hand, I'd highly recommend looking at [[evil-collection][evil-collection]]. The main difference between this package and others is that it attempts to cover everything as opposed to a single mode. The main benefit of this approach is that =evil-collection= uses a consistent set of rules for what keys are bound to what types of actions. Because of this, I will likely switch my personal configuration for all relevant modes to use =evil-collection= as a base in the future. Even if you don't agree with the specific key choices, it is easy enough to swap them for your own. On the other hand, most emacs applications use inconsistent keybindings for common actions such as filtering, sorting, marking, etc., so one might even argue that with evil-collection, using evil for such applications is actually easier and more consistent than using them normally.
+Some people prefer to use evil only for text editing and use the default emacs keybindings for applications such as dired and mail clients. Evil makes this easy to do by altering initial states or using overriding keymaps for these modes. I personally prefer to use evil everywhere. Some people argue that the lack of default keybindings for applications like dired means that far too much work is required to use evil with them. Some argue that the lack of consistency makes evil not worth using at all. In my experience, making your own keybindings for some application like mu4e takes significantly less time than reading the documentation and can be done simultaneously. Even if you disagree, it's no longer the case that most modes have no evil support. In many cases there are packages for specific modes that will make evil keybindings for you, such as [[https://github.com/justbur/evil-magit][evil-magit]]. I don't personally use these unless they provide new functionality too, but some people find these packages indispensable.
+
+On the other hand, I'd highly recommend looking at [[evil-collection][evil-collection]]. The main difference between this package and others is that it attempts to cover everything as opposed to a single mode. The main benefit of this approach is that =evil-collection= uses a consistent set of rules for what keys are bound to what types of actions. Because of this, I will likely switch my personal configuration for all relevant modes to use =evil-collection= as a base in the future. Even if you don't agree with the specific key choices, it is easy enough to swap them for your own. On the other hand, most emacs applications use inconsistent keybindings for common actions such as filtering, sorting, marking, etc., so one might even argue that with evil-collection, using evil for such applications is actually easier and more consistent than using them normally.
 
 ** What Overrides Evil?
 If you've ever entered some buffer and noticed that your normal state keybindings weren't working, it was probably because of some configuration done by evil (see =evil-integration.el=). There are very few cases where another keymap takes precedence over an evil one.
@@ -921,6 +928,17 @@ You can start emacs with the =--debug-init= flag when there is some problem in y
 [[https://github.com/flycheck/flycheck][Flycheck]] can help to prevent some errors. If you don't have flycheck installed, you can also byte-compile your init file to get information about detectable errors and jump to them using ~byte-compile-file~; byte-compiling your init file will also give you other nice information such as telling you when you're using obsolete functions/variables. The emacs manual [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html][does not recommend]] using a byte-compiled init file, so you may want to remove the corresponding "elc" file afterwards if you do this.
 
 * FAQ
+** Does evil provide complete vim emulation?
+I think it provides support for what matters. I used Vim heavily for over a year and have gone through Practical Vim in both Vim and Emacs. I was surprised at just how much of Practical Vim is doable with evil. There is missing functionality, but most of it is things that don't make sense in Emacs (e.g. due to differences in windows, tabs, the quickfix window, regexp syntax, etc.). Some arguably less useful commands (like ~:print~) are missing. Where there actually is some useful functionality missing in evil, there is usually an alternative way to do the same thing in Emacs. For example, there is no ~:bufdo~ command in evil, but there are multiple ways to run something on multiple files or buffers. For example, you can run some arbitrary shell command or elisp (including executing a macro) on buffers with ibuffer. You can do something similar on files in dired.
+
+When it comes to actual editing, things are fairly similar, but if you try to use Emacs expecting /everything/ to be exactly the same as in Vim, you will be in for a nasty surprise. When I first tried Emacs, I dismissed it because it was so different. Not everything is one-to-one. Here are a few more examples of things that initially tripped me up:
+
+- As mentioned before, autocommands and hooks do not match up exactly, but the ability to run code on certain triggers still exists
+- The help system is much more specific and focused. Instead of one help command, there are many specific commands like ~help-for-help~, ~describe-key~, ~describe-function~, ~describe-variable~, ~describe-package~, and ~info~. This was initially unpleasant because I had the muscle memory of ~:h foo~, but now Vim's help system feels limited to me by comparison. If you have trouble remembering the available commands, install [[https://github.com/justbur/emacs-which-key][which-key]].
+- Keybinding are much more specific. Emacs has a more sophisticated keymap system. This allows for clearly having a hierarchy of key precedence in a way that is not possible in Vim. This can be confusing at first (hence this guide), but it is powerful once you learn how to make use of it.
+- There is no (non-evil) Emacs equivalent of vim's command line. Again, as a generalization of previous bulllet points, Emacs is more focused on specific commands. I initially thought of Emacs' ~execute-extended-command~ / =M-x= as the equivalent of vim's commandline and was unhappy that I couldn't just type a space after commands in =M-x= or after =:= and get completion but had to hit Enter. To adjust to Emacs, you will be better off using ~evil-ex~ less and using specific commands more. Bind your most frequently used commands to keys and use =M-x= for less frequently used commands. For example, ~evil-ex~ is better used for commands like =:g= and =:s= than for the equivalent of vim's =:color=. In Emacs, you could instead bind something like ~consult-theme~ to key.
+- See also the below FAQ entries and the rest of this guide.
+
 ** Is emacs slow to start?
 No, people's init files are usually the problem. To test emacs' startup speed, you can start it without loading your init file using ~emacs -Q~. Even with hundreds of packages, the startup time shouldn't be increased very much if you properly defer the loading of your packages when possible.
 
@@ -928,15 +946,19 @@ Deferring a package from loading often just involves not putting a ~(require 'pa
 
 Even if your init is not too optimized, you can use emacs' server functionality so that you only need to start emacs once. You can start the server either putting ~(server-start)~ in your init file or by using ~emacsclient~ or ~emacs~ (with the =--daemon= flag) to create it. You can connect to a server using ~emacsclient~. I personally use ~emacsclient~ as my EDITOR and have a key bound to ~emacsclient -a "" -c~, which will open a new graphical emacs frame and start the server if it isn't already running. See the ~emacsclient~ manpage and the [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Emacs-Server.html][corresponding emacs manual section]] for more information.
 
-For a convenient way to control package loading, see [[https://github.com/jwiegley/use-package][use-package]]. For a way to profile your init file(s), see [[https://github.com/dholm/benchmark-init-el][benchmark-init]] and [[https://github.com/jschaf/esup][esup]].
+For a convenient way to control package loading, see [[https://github.com/jwiegley/use-package][use-package]]. For a way to profile your init file(s), see [[https://github.com/dholm/benchmark-init-el][benchmark-init]], [[https://github.com/jschaf/esup][esup]], and [[https://github.com/emacsattic/profile-dotemacs][profile-dotemacs]].
+
+For more information on speeding up initialization, see [[https://github.com/hlissner/doom-emacs/blob/develop/docs/faq.org#how-does-doom-start-up-so-quickly][How does Doom start up so quickly?]]
+
+For extra utilities for autoloading packages and speeding up initialization for non-Doom users, see [[https://github.com/noctuid/satch.el][satchel]].
 
 ** How do I improve emacs' performance?
-If you're encountering lag while using emacs, it's likely due to part of your configuration. A common culprit for slowdown is =linum-mode=. =nlinum= is a faster alternative, and emacs now has line numbers builtin which should be preferred (see the =display-line-numbers= variable).
+If you're encountering lag while using emacs, it's likely due to part of your configuration. A common culprit for slowdown is =linum-mode=. Emacs has fast line numbering builtin which should be preferred (see the =display-line-numbers= variable).
 
-I've also found that =git-gutter=, for example, can cause major slowdowns in large buffers with a lot of changes. I've heard that =fic-mode= can also cause problems. In really large files, you may need to disable some of your minor modes, switch to fundamental mode, or use [[https://github.com/m00natic/vlfi][vlf]]. If you're having trouble quickly finding the culprit of slowdowns, you should try profiling with ~profiler-start~.
+I've also found that =git-gutter=, for example, can cause major slowdowns in large buffers with a lot of changes. I've heard that =fic-mode= can also cause problems. In really large files, you may need to disable some of your minor modes, switch to fundamental mode, use ~so-long-mode~, or use [[https://github.com/m00natic/vlfi][vlf]]. If you're having trouble quickly finding the culprit of slowdowns, you should try profiling with ~profiler-start~.
 
 ** Does emacs have vim-like tabs (distinct window configurations)?
-The state of window-configuration libraries has always been a bit compliated in Emacs. Emacs now has ~tab-line-mode~ and ~tab-bar-mode~, so use those if they work for you.
+The state of window-configuration libraries has always been a bit complicated in Emacs. Emacs now has ~tab-line-mode~ and ~tab-bar-mode~, so use those if they work for you.
 
 There are also a large number of other packages that add support for this. I previously used [[https://github.com/pashinin/workgroups2][workgroups2]] until it broke. It looks like it is maintained again now. [[https://github.com/alphapapa/burly.el][burly]] is also worth looking into. Now I use my own frame-based solution [[https://github.com/noctuid/framegroups.el][framegroups]] for ~winner-undo~ support. [[https://github.com/akirak/frame-workflow][frame-workflow]] is similar, though it looks like it has been archived.
 
@@ -965,25 +987,22 @@ This is also not possible by default. See the previous link.
 ** What's the equivalent of vim-unimpaired's =cow=?
 This is also not possible by default. See the previous link.
 
+** Why doesn't =gn= work?
+You need to set =evil-search-module= to ='evil-search= for =gn= to work.
+
 ** How do I copy and paste to/from the clipboard in terminal emacs?
-For osx (with pbcopy) and linux (with xclip), you can install =xclip.el= for this functionality. I have this in my configuration to turn it on when I open emacs in a terminal:
-#+begin_src emacs-lisp
-(defun noct:conditionally-toggle-xclip-mode ()
-  (if (display-graphic-p)
-      (if (bound-and-true-p xclip-mode)
-          (xclip-mode -1))
-    (xclip-mode)))
+Use [[https://github.com/spudlyo/clipetty][clipetty]] if you use a supported terminal (e.g. iTerm2, xterm, kitty, etc.). Even if your terminal is not listed there, try clipetty with it before trying =xclip.el=. Unlike =xclip.el=, clipetty works fine even if enabled for a server that has both graphical and terminal frames.
 
-(noct:conditionally-toggle-xclip-mode)
+For osx (with pbcopy) and linux (with xclip), you can alternatively install =xclip.el= for this functionality. Unfortunately, last time I tried it it does not work well if you are using a server that has both graphical and terminal frames.
 
-(add-hook 'focus-in-hook
-          #'noct:conditionally-toggle-xclip-mode)
-#+end_src
-
-If you don't use emacsclient for terminal instances, you don't need to use a hook at all. If you do use emacsclient for both graphical and terminal instances, then this should work in theory if your terminal supports =focus-in-hook= (e.g. st and kitty). That said, even though the mode is correctly toggled for me, it doesn't work in an emacsclient terminal frame unfortunately.
+For another alternative on X11, there is [[https://github.com/DamienCassou/gpastel][gpastel]].
 
 ** Can I have better completion in the ex command line?
-~ivy-mode~, for example, does work in the ex command line, but it must be manually triggered. Because of how completion in the command line works, there is no way as far as I'm aware to have automatic completion popups. Company does work with =q:=, but by default, the completions it suggests may not be too useful.
+For basic command completion install and [[https://github.com/minad/corfu#completing-with-corfu-in-the-minibuffer][enable corfu in the minibuffer]]. Then set =corfu-auto= to =t= if you want automatic popups.
+
+~completing-read~ alternatives like ~ivy-mode~ and ~vertico-mode~ will also work in the ex command line, but they must be manually triggered.
+
+In most cases where more complex argument completion would be useful, you're better off using a dedicated command instead of evil's commandline.
 
 ** How do I prevent parentheses becoming unbalanced in my init file?
 The simplest way is to install and use a package like [[https://github.com/luxbock/evil-cleverparens][evil-cleverparens]] or [[https://github.com/noctuid/lispyville][lispyville]] that will prevent evil's operators from unbalancing parentheses. Lispyville only remaps evil's operators by default, so you can ignore its other functionality (and lispy too) if you want.
@@ -996,14 +1015,16 @@ Using builtin line numbers is now the best solution. Here's my configuration tha
               ;; this is the default
               display-line-numbers-current-absolute t)
 
-(defun noct:relative ()
+(defun noct-relative ()
+  "Show relative line numbers."
   (setq-local display-line-numbers 'visual))
 
-(defun noct:absolute ()
+(defun noct-absolute ()
+  "Show absolute line numbers."
   (setq-local display-line-numbers t))
 
-(add-hook 'evil-insert-state-entry-hook #'noct:absolute)
-(add-hook 'evil-insert-state-exit-hook #'noct:relative)
+(add-hook 'evil-insert-state-entry-hook #'noct-absolute)
+(add-hook 'evil-insert-state-exit-hook #'noct-relative)
 
 ;; example of customizing colors
 (custom-set-faces '(line-number-current-line ((t :weight bold
@@ -1012,7 +1033,7 @@ Using builtin line numbers is now the best solution. Here's my configuration tha
 #+end_src
 
 ** Does emacs have support for folding?
-Yes, evil has integration with various emacs "folding" mechanisms builtin (such as origami, hideshow, and outline-mode/org-mode/markdown-mode; see =evil-fold-list=). Not all of vim's =z= keys will work though.
+Yes, evil has integration with various emacs "folding" mechanisms builtin (such as origami, hideshow, and outline-mode/org-mode/markdown-mode; see =evil-fold-list=). Not all of vim's =z= keys will work though. See also the outshine package to have org-mode syntax folding in any file.
 
 For manual creation of folds from selected regions, there are the [[https://github.com/mrkkrp/vimish-fold][vimish-fold]] and [[https://github.com/alexmurray/evil-vimish-fold][evil-vimish-fold]] packages.
 
