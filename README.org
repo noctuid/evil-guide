@@ -202,9 +202,9 @@ You can use ~setq-local~ set the local value of a variable. If the variable is n
 
 This would be the vim equivalent:
 #+begin_src vimrc
-au c_settings
-	au!
-	au FileType c setlocal noexpandtab
+augroup c_settings
+	autocmd!
+	autocmd FileType c setlocal noexpandtab
 augroup END
 #+end_src
 
